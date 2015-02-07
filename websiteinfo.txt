@@ -16,3 +16,8 @@ MySQL ver.	5.1
 Activated On	2015-02-07 16:30
 Status	Active
 Plan	Free (Upgrade!)
+
+Files must be uploaded to 'public_html' folder.
+
+*** MySQL Details ***
+Use mysql host 'mysql11.000webhost.com' for your PHP scripts.
