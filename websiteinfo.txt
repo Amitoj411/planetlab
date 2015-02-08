@@ -1,0 +1,18 @@
+website info:
+
+Account planetlabstatus.net16.net with username a7278452 and password group15 has been created!
+
+Domain	planetlabstatus.net16.net
+Username	a7278452
+Password	******
+Disk Usage	0 / 1500.0 MB
+Bandwidth	100000 MB (100GB)
+Home Root	/home/a7278452
+Server Name	server36.000webhost.com
+IP Address	31.170.160.100
+Apache ver.	2.2.19 (Unix)
+PHP version	5.2.*
+MySQL ver.	5.1
+Activated On	2015-02-07 16:30
+Status	Active
+Plan	Free (Upgrade!)
