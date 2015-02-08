@@ -34,17 +34,20 @@ if __name__ == "__main__":
         #the next for many commands
         global saved
         if(~saved):
-#            try:
-#                retcode = call("uptime" + "-p", shell=True)
-#                if retcode < 0:
-#                    print >>sys.stderr, "Child was terminated by signal", -retcode
-#                else:
-#                    print >>sys.stderr, "Child returned", retcode
-#            except OSError as e:
-#                print >>sys.stderr, "Execution failed:", e                
-            p = sub.Popen('uptime', stdout=sub.PIPE, stderr=sub.PIPE)
-            output, errors = p.communicate()
-#            print output
+            #Retrieve node monitoring fields
+            Nodes_IP = sub.Popen(''' /sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' | ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]		
+            Nodes_hostname = sub.Popen(''' hostname | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+            Nodes_du = sub.Popen(''' du | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+            Nodes_df = sub.Popen(''' df | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]	
+            Nodes_uptime = sub.Popen(''' uptime | cut -d"," -f1 | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+            Nodes_alive = True
+            Nodes_logon = True
+            Nodes_load = sub.Popen(''' for avload in $(cat /proc/loadavg); do if [[ $avload =~ ^.*\\..*$ ]]; then echo -n  "$avload "; fi done ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+			
+            Nodes_fields = [Nodes_IP, Nodes_hostname, Nodes_du, Nodes_df, Nodes_uptime, Nodes_alive, Nodes_logon, Nodes_load]
+            output = ','.join([str(field) for field in Nodes_fields]) #CSV String of Node field data
+			
+            print output
             # send it to the centralized server
             push("planetlab-01.vt.nodes.planet-lab.org",output,6006)
             saved=True
@@ -80,11 +83,11 @@ if __name__ == "__main__":
                              socket.SOCK_DGRAM) # UDP
         try:
             UDP_IP=socket.gethostbyname(UDP_HOST.rstrip())
-            print "Connectining to: "+UDP_IP #+ ", with the msg:" + MESSAGE
+            print "Connecting to: "+UDP_IP #+ ", with the msg:" + MESSAGE
             sock.sendto(MESSAGE.rstrip(), (UDP_IP, UDP_PORT))
-            print "push is sccusseful"
+            print "Push is successful"
         except:
-            print "push is not sccusseful\n"
+            print "Push is not successful\n"
             pass # the reciever should show you the dead nodes
             
 #        print "UDP_host:"+ UDP_HOST + " UDP_IP: "+ UDP_IP
@@ -105,7 +108,7 @@ if __name__ == "__main__":
     #print "dsfdsfd" +infected
 
     while(counter<int(math.log(N,2))):
-        print "Interation: "+str(counter)
+        print "Iteration: "+str(counter)
         if(infected=="infected"):
             save_data()#1
             randomNode=randint(1,N) #make sure it is not the same node as the current
@@ -120,13 +123,3 @@ if __name__ == "__main__":
         counter=counter+1
 
     raise Exception("Terminated: Log(N) is reached")
-
-
-
-
-
-
-
-
-
-
