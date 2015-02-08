@@ -37,7 +37,7 @@ if __name__ == "__main__":
             #Retrieve node monitoring fields
             Nodes_IP = sub.Popen(''' /sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' | ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]		
             Nodes_hostname = sub.Popen(''' hostname | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
-            Nodes_du = sub.Popen(''' du | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+            Nodes_du = sub.Popen(''' du -s | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_df = sub.Popen(''' df | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]	
             Nodes_uptime = sub.Popen(''' uptime | cut -d"," -f1 | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_alive = True
