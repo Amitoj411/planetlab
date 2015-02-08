@@ -21,3 +21,8 @@ Files must be uploaded to 'public_html' folder.
 
 *** MySQL Details ***
 Use mysql host 'mysql11.000webhost.com' for your PHP scripts.
+
+$mysql_host = "mysql11.000webhost.com";
+$mysql_database = "a7278452_nodes";
+$mysql_user = "a7278452_group15";
+$mysql_password = "group15";
