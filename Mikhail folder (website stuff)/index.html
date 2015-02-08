@@ -1,13 +1,35 @@
 <!DOCTYPE html>
 <html>
-<body>
+	<body>
 
-<h1>Planetlab Health Monitor!</h1>
+		<h1>Planetlab Health Monitor!</h1>
 
-<p>Press this button to set up the tables:</p>
+		<p>Press this button to set up the tables:</p>
 
-<form><input type="button" value="Import Tables" onClick="window.location.href='project_import.php'"></form>
+		<form><input type="button" value="Import Tables" onClick="window.location.href='project_import.php'"></form>
 
+		<h2> Status:</h2>
 
-</body>
+		<?php
+			// Connect to MySQL server
+			$mysql_host = "mysql11.000webhost.com";
+			$mysql_database = "a7278452_nodes";
+			$mysql_user = "a7278452_group15";
+			$mysql_password = "group15";
+			
+			mysql_connect($mysql_host, $mysql_user, $mysql_password) or die('Error connecting to MySQL server: ' . mysql_error());
+			// Select database
+			mysql_select_db($mysql_database) or die('Error selecting MySQL database: ' . mysql_error());
+			$query = "SELECT * FROM Nodes"; 
+			$result = mysql_query($query);
+			
+			echo "<table><tr><td>IP Address</td><td>Host Name</td><td>Disk Used</td><td>Disk Free</td><td>Up Time</td><td>Status</td><td>Login?</td><td>Load</td></tr>";
+			
+			while($row = mysql_fetch_array($result)){   //Creates a loop to loop through results
+				echo "<tr><td>" . $row['Nodes_IP'] . "</td><td>" . $row['Nodes_hostname'] . "</td><td>" . $row['Nodes_du'] . "</td><td>" . $row['Nodes_df'] . "</td><td>" . $row['Nodes_uptime'] . "</td><td>" . $row['Nodes_alive'] . "</td><td>" . $row['Nodes_logon'] . "</td><td>" . $row['Nodes_load'] . "</td></tr>";
+			}
+			echo "</table>";
+		?>
+
+	</body>
 </html>
