@@ -25,9 +25,21 @@ if __name__ == "__main__":
         nodes = file.readlines()
 
         return nodes
-    #      for line in f:
-    #         print 'Sending msg to host:'+line,
-    #         push(recieved_couter+1)
+    
+    nodes=constructNodesArray()
+    N=len(nodes)
+
+#    def workingNode(hostName):
+#        file=open('node_dead_list.txt', 'rU')
+#        nodesDead = file.readlines()
+#        
+#        file2=open('node_cant_login_list.txt', 'rU')
+#        nodesCantLogin=file2.readlines()
+#        
+#        if(hostName in nodesDead or hostName in nodesCantLogin):
+#            randomNode=randint(1,N)
+#            newHostName=workingNode(nodes[randomNode-1]) # Dont come back until you find a working node
+#        return newHostName
 
     def save_data():
         #call (["ls", "-1"])
@@ -51,9 +63,10 @@ if __name__ == "__main__":
             # send it to the centralized server
             push("planetlab-01.vt.nodes.planet-lab.org",output,6006)
             saved=True
-        return 1
+        
 
     def recieve():
+        print "waiting:"
         UDP_IP = "" #watch out from 127.0.0.1
         UDP_PORT = 5005
 
@@ -63,7 +76,8 @@ if __name__ == "__main__":
 
         while True:
             data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-            print "received message:", data
+            print "received message: ", data
+            break # you got to break!
         return data
 
     def push(UDP_HOST, MESSAGE, UDP_PORT):
@@ -83,23 +97,23 @@ if __name__ == "__main__":
                              socket.SOCK_DGRAM) # UDP
         try:
             UDP_IP=socket.gethostbyname(UDP_HOST.rstrip())
-            print "Connecting to: "+UDP_IP #+ ", with the msg:" + MESSAGE
+#            print "Connecting to: "+UDP_IP #+ ", with the msg:" + MESSAGE
             sock.sendto(MESSAGE.rstrip(), (UDP_IP, UDP_PORT))
-            print "Push is successful"
+#            print "push is successful"
         except:
-            print "Push is not successful\n"
+            print "push is not sccusseful\n"
             pass # the reciever should show you the dead nodes
             
 #        print "UDP_host:"+ UDP_HOST + " UDP_IP: "+ UDP_IP
 
 
 
-    nodes=constructNodesArray()
-    #print "Number of nodes: "+str(len(nodes))
+
 
 
     args=str(sys.argv)
-    N=len(nodes)
+  
+    print "len(nodes)=" + str(N)
 
     counter=0
 
@@ -112,14 +126,24 @@ if __name__ == "__main__":
         if(infected=="infected"):
             save_data()#1
             randomNode=randint(1,N) #make sure it is not the same node as the current
-            push(nodes[randomNode], "", 5005)#2
+            push(nodes[randomNode-1], "", 5005)#2
         else: 
-            print "I'm pure"
+            print "I'm not infected. Listening on port 5005.."
             recieved_counter=recieve() #keep waiting for infection msg
             save_data()#1
             randomNode=randint(1,N)
-            push(nodes[randomNode], "", 5005)#make sure it is not the same node as the current
+            push(nodes[randomNode-1], "", 5005)#To-Do: make sure it is not the same node as the current
             infected="infected"
         counter=counter+1
 
     raise Exception("Terminated: Log(N) is reached")
+
+
+
+
+
+
+
+
+
+
