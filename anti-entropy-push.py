@@ -11,7 +11,7 @@ import subprocess as sub
 #print 'Argument List:', str(sys.argv)
 
 
-saved=False
+
 
 if __name__ == "__main__": 
     if(len(sys.argv) !=2 ): 
@@ -28,6 +28,16 @@ if __name__ == "__main__":
     
     nodes=constructNodesArray()
     N=len(nodes)
+    saved=False
+    
+    args=str(sys.argv)
+
+    print "len(nodes)=" + str(N)
+
+    counter=0
+
+    opts, args = getopt.getopt(sys.argv, "", [""])
+    infected=args[1]
 
 #    def workingNode(hostName):
 #        file=open('node_dead_list.txt', 'rU')
@@ -61,11 +71,12 @@ if __name__ == "__main__":
 			
             print output
             # send it to the centralized server
-            push("planetlab-01.vt.nodes.planet-lab.org",output,6006)
+            push("planetlab-01.vt.nodes.planet-lab.org",output,60006)
             saved=True
         
 
     def recieve():
+        global infected
         print "waiting:"
         UDP_IP = "" #watch out from 127.0.0.1
         UDP_PORT = 5005
@@ -77,6 +88,10 @@ if __name__ == "__main__":
         while True:
             data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
             print "received message: ", data
+            if(data=="die"):
+                infected="die"
+            elif(data=="push"):
+                infected="infected"
             break # you got to break!
         return data
 
@@ -111,14 +126,7 @@ if __name__ == "__main__":
 
 
 
-    args=str(sys.argv)
-  
-    print "len(nodes)=" + str(N)
 
-    counter=0
-
-    opts, args = getopt.getopt(sys.argv, "", [""])
-    infected=args[1]
     #print "dsfdsfd" +infected
 
     while(counter<int(math.log(N,2))):
@@ -126,14 +134,17 @@ if __name__ == "__main__":
         if(infected=="infected"):
             save_data()#1
             randomNode=randint(1,N) #make sure it is not the same node as the current
-            push(nodes[randomNode-1], "", 5005)#2
-        else: 
+            push(nodes[randomNode-1], "push", 5005)#2
+        elif(infected=="notinfected"): 
             print "I'm not infected. Listening on port 5005.."
             recieved_counter=recieve() #keep waiting for infection msg
             save_data()#1
             randomNode=randint(1,N)
-            push(nodes[randomNode-1], "", 5005)#To-Do: make sure it is not the same node as the current
-            infected="infected"
+            push(nodes[randomNode-1], "push", 5005)#To-Do: make sure it is not the same node as the current
+#            infected="infected"
+        elif(infected=="die"):
+            randomNode=randint(1,N) #make sure it is not the same node as the current
+            push(nodes[randomNode-1], "die", 5005)#2
         counter=counter+1
 
     raise Exception("Terminated: Log(N) is reached")
