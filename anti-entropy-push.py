@@ -51,24 +51,32 @@ if __name__ == "__main__":
 #            newHostName=workingNode(nodes[randomNode-1]) # Dont come back until you find a working node
 #        return newHostName
 
-    def save_data():
+    def save_data(commands):
         #call (["ls", "-1"])
         #the next for many commands
         global saved
         if(~saved):
             #Retrieve node monitoring fields
-            Nodes_IP = sub.Popen(''' /sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' | ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]		
+            Nodes_IP = sub.Popen(''' /sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_hostname = sub.Popen(''' hostname | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_du = sub.Popen(''' du -s | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
-            Nodes_df = sub.Popen(''' df | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]	
+            Nodes_df = sub.Popen(''' df | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_uptime = sub.Popen(''' uptime | cut -d"," -f1 | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
-            Nodes_alive = True
-            Nodes_logon = True
+            Nodes_alive = "True"
+            Nodes_logon = "True"
             Nodes_load = sub.Popen(''' for avload in $(cat /proc/loadavg); do if [[ $avload =~ ^.*\\..*$ ]]; then echo -n  "$avload "; fi done ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
-			
+
             Nodes_fields = [Nodes_IP, Nodes_hostname, Nodes_du, Nodes_df, Nodes_uptime, Nodes_alive, Nodes_logon, Nodes_load]
-            output = ','.join([str(field) for field in Nodes_fields]) #CSV String of Node field data
-			
+            output = ','.join(['"' + str(field) + '"' for field in Nodes_fields]) #CSV String of Node field data
+
+            if commands is not None:
+                Extra_commands = []
+                for arg in commands:
+                    command_output = sub.Popen(arg, stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
+                    Extra_commands.append("<b>" + arg + "</b>"+ " : " + command_output)
+                Extra_html = '<br><br>'.join([str(command_pair) for command_pair in Extra_commands]) #HTML Formatted String of Extra Commands
+                output += ';"' + Extra_html + '"'
+
             print output
             # send it to the centralized server
             push("planetlab-01.vt.nodes.planet-lab.org",output,60006)
