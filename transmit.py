@@ -2,6 +2,7 @@ __author__ = 'Amitojsandhu'
 #imports
 from socket import *
 import MySQLdb
+import datetime
 
 Port = 60006
 IP_Address = ''
@@ -16,11 +17,10 @@ def receiveData():
     #Receive messages
     while True:
         message, address = serverSocket.recvfrom(2048)  #Size of 2048 bytes, may need to increase
-        #       print ("Connected to: ", address)               #Prints the address that connected to it
-        return message                                  #Returns a list with [IP Address, Received Message]
+        return message                                  #Returns the received message
 
 
-#May not need this function - if we use SQL
+#Not using this function - Sending to SQL server instead
 def sendData(ip_name, port2, message):
     ip_addr = gethostbyname(ip_name)
     #Setting up sending socket
@@ -30,26 +30,16 @@ def sendData(ip_name, port2, message):
     sendSocket.send(message)
 
 
-#Not using this
-def parseData(message):
-    #message.find("....")                           <-- Returns the # from beginning if found
-    #message2 = message.replace(" ", "")            #Eliminate Whitesapce
-    message_list = message.split(",")               #Splits string by ","
-    print message
-    #print'Uptime is: ', message_list               #Prints entire list seperated by ","
-    #    uptime = float(message_list[5])                 #Converts string to float
-    return message
-#return message_list
-
-
 def mysqlConnector(message):
     #Connect to the MqSQL server
     conn = MySQLdb.connect("185.28.23.25", "planetla_group15", "group15", "planetla_Nodes")
     mycursor = conn.cursor()
-    message_array = message.split(",")
-    print(message_array)
+    message_array = message.split(",")                          #Splits the incoming message by "," and creates a list instead
     
-    #Try to send data the file to the Database
+    current_time = str(datetime.datetime.now().time())                          #Added a timestamp
+    print (current_time + "  Receiving Data from:  %s" % message_array[1])      #Prints the hostname that connected to it
+    
+    #Try to send data to the mySQL server
     try:
         mycursor.execute("""INSERT INTO nodes (nodes_IP, Nodes_hostname, Nodes_du, Nodes_df, Nodes_uptime, Nodes_alive, Nodes_login, Nodes_load, nodes_extra)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE Nodes_du=%s, Nodes_df=%s, Nodes_uptime=%s, Nodes_alive=%s, Nodes_login=%s, Nodes_load=%s, nodes_extra=%s""",
@@ -58,15 +48,14 @@ def mysqlConnector(message):
                           
         conn.commit()
     except:
-        #print("Error in sending")
-        #conn.rollback()
+        #       conn.rollback()
         raise
 
-#    mycursor.execute("""SELECT * FROM nodes;""")    #Prints all the nodes
-#    print mycursor.fetchall()
+#    mycursor.execute("""SELECT * FROM nodes;""")   #Selects all the nodes in the table
+#    print mycursor.fetchall()                      #Prints all the nodes
 
 
 #***** All code executes here - Main *****#
-print "Listening IP Address: %s & Port # %d" % (IP_Address, Port)
+print ("Listening on Port#:  %d" % Port)
 while True:
     mysqlConnector(receiveData())
