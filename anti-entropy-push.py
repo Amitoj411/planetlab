@@ -62,7 +62,7 @@ if __name__ == "__main__":
         #call (["ls", "-1"])
         #the next for many commands
         global saved
-        if(~saved):
+        if(not saved):
             #Retrieve node monitoring fields
             Nodes_IP = sub.Popen(''' /sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ printf $1}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
             Nodes_hostname = sub.Popen(''' hostname | awk '{printf $0}' ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
