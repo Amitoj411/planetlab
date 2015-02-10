@@ -23,10 +23,17 @@ if __name__ == "__main__":
 #               nodes = f.readlines()
         file=open('node_list.txt', 'rU')
         nodes = file.readlines()
-
         return nodes
     
+    def parseExtraCommands():
+#        with open('node_list.txt', 'rU') as f:
+#               nodes = f.readlines()
+        file=open('extra_commands.txt', 'rU')
+        extraCommands = file.readlines()
+        return extraCommands
+    
     nodes=constructNodesArray()
+    extraCommands=parseExtraCommands()
     N=len(nodes)
     saved=False
     
@@ -37,7 +44,7 @@ if __name__ == "__main__":
     counter=0
 
     opts, args = getopt.getopt(sys.argv, "", [""])
-    infected=args[1]
+    mode=args[1]
 
 #    def workingNode(hostName):
 #        file=open('node_dead_list.txt', 'rU')
@@ -84,7 +91,7 @@ if __name__ == "__main__":
         
 
     def recieve():
-        global infected
+        global mode
         print "waiting:"
         UDP_IP = "" #watch out from 127.0.0.1
         UDP_PORT = 5005
@@ -97,9 +104,9 @@ if __name__ == "__main__":
             data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
             print "received message: ", data
             if(data=="die"):
-                infected="die"
+                mode="die"
             elif(data=="push"):
-                infected="infected"
+                mode="infected"
             break # you got to break!
         return data
 
@@ -139,18 +146,17 @@ if __name__ == "__main__":
 
     while(counter<int(math.log(N,2))):
         print "Iteration: "+str(counter)
-        if(infected=="infected"):
-            save_data()#1
+        if(mode=="infected"):
+            save_data(extraCommands)
             randomNode=randint(1,N) #make sure it is not the same node as the current
             push(nodes[randomNode-1], "push", 5005)#2
-        elif(infected=="notinfected"): 
+        elif(mode=="notinfected"): 
             print "I'm not infected. Listening on port 5005.."
             recieved_counter=recieve() #keep waiting for infection msg
-            save_data()#1
+            save_data(extraCommands)
             randomNode=randint(1,N)
             push(nodes[randomNode-1], "push", 5005)#To-Do: make sure it is not the same node as the current
-#            infected="infected"
-        elif(infected=="die"):
+        elif(modeinfe=="die"):
             randomNode=randint(1,N) #make sure it is not the same node as the current
             push(nodes[randomNode-1], "die", 5005)#2
         counter=counter+1
