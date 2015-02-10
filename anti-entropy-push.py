@@ -82,7 +82,9 @@ if __name__ == "__main__":
                     command_output = sub.Popen(arg, stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()[0]
                     Extra_commands.append("<b>" + arg + "</b>"+ " : " + command_output)
                 Extra_html = '<br><br>'.join([str(command_pair) for command_pair in Extra_commands]) #HTML Formatted String of Extra Commands
-                output += ';"' + Extra_html + '"'
+                output += ',"' + Extra_html + '"'
+            else:
+                output += ',""'
 
             print output
             # send it to the centralized server
