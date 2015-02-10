@@ -1,0 +1,12 @@
+FTP information:
+
+IP Address: 185.28.23.25 
+FTP Username: planetla
+FTP password: group15
+
+mySQL database information:
+Database: planetla_Nodes
+User: planetla_group15
+Password: group15
+
+**To access remotely, the connecting IP address must be provided first**
