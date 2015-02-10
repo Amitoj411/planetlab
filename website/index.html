@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+    background-color: white;
+}
+h1 {
+    color: black;
+    margin-left: 40px;
+background: white;
+}
+h2 {
+background: white;
+}
+
+h3 {
+text-align: right;
+font-style: italic;
+}
+
+td, th{
+    border-spacing: 0.5rem;
+    text-align: left;
+    border: 1px solid lightblue;
+}
+th {
+  background: lightblue;
+  border-color: white;
+}
+table{
+    border-collapse: collapse;
+}
+</style>
+</head>
+	<body>
+
+		<h1>Planetlab Health Monitor! - Group 15</h1>
+                <h3>By: Abraham Chan, Nabil Al Rousan, Mikhail Chaloupov, Amitoj Sandhu </h3>
+		<h2>Status:</h2>
+
+		<?php
+			$mysql_host = "185.28.23.25";
+			$mysql_database = "planetla_Nodes";
+			$mysql_user = "planetla_group15";
+			$mysql_password = "group15";
+			
+			mysql_connect($mysql_host, $mysql_user, $mysql_password) or die('Error connecting to MySQL server: ' . mysql_error());
+			
+			mysql_select_db($mysql_database) or die('Error selecting MySQL database: ' . mysql_error());
+			$query = "SELECT * FROM nodes ORDER BY nodes_login DESC"; 
+			$result = mysql_query($query);
+			
+			echo "<table><thead><tr><th>IP Address:</th><th>Host Name:</th><th>Disk Used:</th><th>Disk Free:</th><th>Up Time:</th><th>Alive?</th><th>Login?</th><th>Load:</th><th>Other Commands:</th></tr></thead><tfoot><tr><th>IP Address:</th><th>Host Name:</th><th>Disk Used:</th><th>Disk Free:</th><th>Up Time:</th><th>Alive?</th><th>Login?</th><th>Load:</th><th>Other Commands:</th></tr></tfoot><tbody>";
+			
+			while($row = mysql_fetch_array($result)){   //Creates a loop to loop through results
+
+				echo "<tr><td>" . $row['nodes_ip'] . "</td><td>" . $row['nodes_hostname'] . "</td><td>" . $row['nodes_du'] . "</td><td>" . $row['nodes_df'] . "</td><td>" . $row['nodes_uptime'] . "</td><td>" . $row['nodes_alive'] . "</td><td>" . $row['nodes_login'] . "</td><td>" . $row['nodes_load'] . "</td><td>" . $row['nodes_extra'] . "</td></tr>";
+			}
+			echo "</font></tbody></table>";
+
+?>
+
+	</body>
+</html>
+
