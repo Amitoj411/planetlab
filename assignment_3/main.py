@@ -6,12 +6,18 @@ import sys
 import threading
 
 def receive():
-    msg = wireObj.receive(hashedKeyModN)
+    command, key, value_length, value = wireObj.receive(hashedKeyModN)
     print "Receive thread reporting..."
-    print "Receiving:" + msg
+    print "Receiving:" + command
     # @Michael: Please handle the msg
     # You might receive get or put msgs from other nodes.
     # Process the request locally and send them back the value in case of get
+    if command == "put":
+        kvTable.put(key, value)
+    elif command == "get":
+        value_to_send = kvTable.get(key)
+        wireObj.send("get", key, "", value_to_send)  # @Abraham & @Amitoj
+
 
 def user_input():
     while True:
@@ -37,7 +43,7 @@ def user_input():
                 kvTable.put(key, value)
                 print "KV[" + key + "]=" + value
             else:
-                wireObj.send("get", key, value, "")  # @Abraham & @Amitoj
+                wireObj.send("put", key, "", value)  # @Abraham & @Amitoj
         else:
             sys.exit("Exit normally.")
 

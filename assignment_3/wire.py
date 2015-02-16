@@ -1,5 +1,6 @@
 __author__ = 'Owner'
 import udpSendRecieve
+import struct
 
 
 class Wire:
@@ -16,7 +17,7 @@ class Wire:
 
         for line in nodes:
             _arr = line.split(',')
-            if hashedKeyMod == _arr[0].strip():
+            if int(hashedKeyMod) == int(_arr[0].strip()):
                 return _arr[1].strip()
 
         return -1
@@ -34,15 +35,15 @@ class Wire:
         # 3. The length of the value: integer represented on two bytes.  Maximum value 15,000.
         #    Only used for put operation.
         # 4.  Value. Byte array. Only used for put operation.
-    def send(self, port, command, key, value_length, value):
+    def send(self, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
 
-        msg = struct.pack(I, command)               #Packing command as an Int
-        msg += struct.pack(I, key)                  #Packing Key as an Int
-        msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
-        msg += struct.pack(I, value)                #Packing value as an Int
+        msg = struct.pack('I', command)               # Packing command as an Int
+        msg += struct.pack('I', key)                  # Packing Key as an Int
+        msg += struct.pack('<I', value_length)      # Packing value_length as an Little Endian Int
+        msg += struct.pack('I', value)                # Packing value as an Int
 
-        #Get the IP from the key
+        # Get the IP:Port from the key
         port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
         obj.send("127.0.0.1", port, msg)
@@ -60,16 +61,17 @@ class Wire:
     def receive(self, hashedKeyMod):
         port = self.lookUp(hashedKeyMod)
         obj = udpSendRecieve.UDPNetwork()
-        msg = obj.receive("127.0.0.1", port)
+        msg = obj.receive("", port)
 
         try:
-            command = struct.unpack(I, msg[0])                  #Unpack the command which is an Integer (I)
-            key = struct.unpack(I, msg[1:32])                   #Unpack the key which is an Int
-            value_length = struct.unpack('<I', msg[33:35])      #Unpack the value_length which is a little endinan Int
-            value = struct.unpack(msg[36:value_length])         #Unpack the value goes from Byte 36 to value_length
+            command = struct.unpack('I', msg[0])                  # Unpack the command which is an Integer (I)
+            key = struct.unpack('I', msg[1:32])                   # Unpack the key which is an Int
+            value_length = struct.unpack('<I', msg[33:35])      # Unpack the value_length which is a little endinan Int
+            value = struct.unpack(msg[36:value_length])         # Unpack the value goes from Byte 36 to value_length
         except:
-            struct.error                                        #Produce error
+            # struct.error                                        #Produce error
+            raise
 
         # @Abraham and Amitoj: un-pack the variable msg from its headers before the return
-        return msg
+        return command, key, value_length, value
 

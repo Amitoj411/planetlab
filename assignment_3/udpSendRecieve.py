@@ -16,7 +16,7 @@ class UDPNetwork:
     def send(self,  udp_ip, udp_port, message):
         sock = socket.socket(socket.AF_INET, # Internet
                              socket.SOCK_DGRAM) # UDP
-        sock.sendto(message, (udp_ip, udp_port))
+        sock.sendto(message, (udp_ip, int(udp_port)))
 
     def receive(self, udp_ip, udp_port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
