@@ -36,7 +36,12 @@ class Wire:
         # 4.  Value. Byte array. Only used for put operation.
     def send(self, port, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-        msg = command + key + value_length + value
+
+        msg = struct.pack(I, command)               #Packing command as an Int
+        msg += struct.pack(I, key)                  #Packing Key as an Int
+        msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
+        msg += struct.pack(I, value)                #Packing value as an Int
+
         #Get the IP from the key
         port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
@@ -51,10 +56,20 @@ class Wire:
         # 0x05.  Unrecognized command.
         #      [possibly more standard codes will get defined here]
         # anything > 0x20. Your own error codes. [Define them in your Readme]
+
     def receive(self, hashedKeyMod):
         port = self.lookUp(hashedKeyMod)
         obj = udpSendRecieve.UDPNetwork()
         msg = obj.receive("127.0.0.1", port)
+
+        try:
+            command = struct.unpack(I, msg[0])                  #Unpack the command which is an Integer (I)
+            key = struct.unpack(I, msg[1:32])                   #Unpack the key which is an Int
+            value_length = struct.unpack('<I', msg[33:35])      #Unpack the value_length which is a little endinan Int
+            value = struct.unpack(msg[36:value_length])         #Unpack the value goes from Byte 36 to value_length
+        except:
+            struct.error                                        #Produce error
+
         # @Abraham and Amitoj: un-pack the variable msg from its headers before the return
         return msg
 
