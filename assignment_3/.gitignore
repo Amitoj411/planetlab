@@ -1,0 +1,5 @@
+#Generated files
+*.pyc
+
+#Configuration files
+.idea/workspace.xml

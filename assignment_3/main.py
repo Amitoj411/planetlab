@@ -4,6 +4,7 @@ import wire
 import getopt
 import sys
 import threading
+import Command
 
 def receive():
     command, key, value_length, value = wireObj.receive(hashedKeyModN)
@@ -35,7 +36,7 @@ def user_input():
             if hash(key) % int(N) == int(hashedKeyModN):
                 print "KV[" + key + "]=" + kvTable.get(key)
             else:
-                wireObj.send("get", key, "", "")
+                wireObj.send(Command.GET, key, "", "")
         elif nb == "3":
             key = raw_input('Please enter the key>')
             value = raw_input('Please enter the value>')
@@ -43,7 +44,7 @@ def user_input():
                 kvTable.put(key, value)
                 print "KV[" + key + "]=" + value
             else:
-                wireObj.send("put", key, "", value)  # @Abraham & @Amitoj
+                wireObj.send(Command.PUT, int(key), len(value), int(value))  # @Abraham & @Amitoj
         else:
             sys.exit("Exit normally.")
 
