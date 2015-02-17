@@ -7,6 +7,8 @@ import threading
 import Command
 
 def receive():
+
+while True:
     command, key, value_length, value = wireObj.receive(hashedKeyModN)
     print "Receive thread reporting..."
     print "Receiving:" + command
@@ -18,7 +20,10 @@ def receive():
     elif command == "get":
         value_to_send = kvTable.get(key)
         wireObj.send("get", key, "", value_to_send)  # @Abraham & @Amitoj
-
+	elif command = "remove":
+		kvTable.remove(key)
+	else
+		print "Our own commands (whatever they may be)"
 
 def user_input():
     while True:
