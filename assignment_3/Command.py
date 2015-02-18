@@ -1,3 +1,6 @@
 __author__ = 'Owner'
 
-PUT, GET, REMOVE, SHUTDOWN = range(4)
+PUT = 0x01
+GET = 0x02
+REMOVE = 0x03
+SHUTDOWN = 0x04

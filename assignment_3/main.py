@@ -5,25 +5,56 @@ import getopt
 import sys
 import threading
 import Command
+import Response
 
 def receive():
+    while True:
+        command, key, value_length, value = wireObj.receive(hashedKeyModN)
+        print "Receive thread reporting..."
+        print "Receiving:" + command
+        # @Michael: Please handle the msg
+        # You might receive get or put msgs from other nodes.
+        # Process the request locally and send them back the value in case of get
+        if command == Command.PUT:
+            try:
+                kvTable.put(key, value)
+                response = Response.SUCCESS
+            except IOError:
+                response = Response.OUTOFSPACE
+            except:
+                response = Response.STOREFAILURE
 
-while True:
-    command, key, value_length, value = wireObj.receive(hashedKeyModN)
-    print "Receive thread reporting..."
-    print "Receiving:" + command
-    # @Michael: Please handle the msg
-    # You might receive get or put msgs from other nodes.
-    # Process the request locally and send them back the value in case of get
-    if command == "put":
-        kvTable.put(key, value)
-    elif command == "get":
-        value_to_send = kvTable.get(key)
-        wireObj.send("get", key, "", value_to_send)  # @Abraham & @Amitoj
-	elif command = "remove":
-		kvTable.remove(key)
-	else
-		print "Our own commands (whatever they may be)"
+            wireObj.sendReply(key, response, 0, "")
+
+        elif command == Command.GET:
+            try:
+                value_to_send = kvTable.get(key)
+                response = Response.SUCCESS
+            except KeyError:
+                response = Response.NONEXISTENTKEY
+            except MemoryError:
+                response = Response.OVERLOAD
+            except:
+                response = Response.STOREFAILURE
+
+            wireObj.sendReply(key, response, len(value_to_send), value_to_send)
+
+        elif command == Command.REMOVE:
+            try:
+                kvTable.remove(key)
+                response = Response.SUCCESS
+            except KeyError:
+                response = Response.NONEXISTENTKEY
+            except MemoryError:
+                response = Response.OVERLOAD
+            except:
+                response = Response.STOREFAILURE
+
+            wireObj.sendReply(key, response, 0, "")
+
+        else:
+            response = Response.UNRECOGNIZED
+            wireObj.sendReply(key, response, 0, "")
 
 def user_input():
     while True:
@@ -49,7 +80,7 @@ def user_input():
                 kvTable.put(key, value)
                 print "KV[" + key + "]=" + value
             else:
-                wireObj.send(Command.PUT, int(key), len(value), int(value))  # @Abraham & @Amitoj
+                wireObj.send(Command.PUT, key, len(value), value)  # @Abraham & @Amitoj
         else:
             sys.exit("Exit normally.")
 
@@ -67,7 +98,3 @@ if __name__ == "__main__":
 
     userInputThread = threading.Thread(target=user_input)
     userInputThread.start()
-
-
-
-

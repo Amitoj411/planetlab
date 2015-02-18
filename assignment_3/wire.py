@@ -1,8 +1,6 @@
 __author__ = 'Owner'
 import udpSendRecieve
 import struct
-import ring
-import Response
 import Command
 
 class Wire:
@@ -10,7 +8,7 @@ class Wire:
                   "(i.e., using UDP, the process for unique IDs, timeouts, etc). " \
                   " The following describes the format of the application level messages exchanged using that protocol"
     numberOfNodes = 0
-    fmt = "I" #Format of Data
+    fmt = "s" #Format of Data
 
     def __init__(self, numberOfNodes):
         self.numberOfNodes = numberOfNodes
@@ -42,10 +40,12 @@ class Wire:
     def send(self, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
 
-        msg = struct.pack(self.fmt, command)               #Packing command as an Int
+        msg = struct.pack('B', command)               #Packing command as an Int
         msg += struct.pack(self.fmt, key)                  #Packing Key as an Int
-        msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
-        msg += struct.pack(self.fmt, value)                #Packing value as an Int
+
+        if command == Command.PUT:
+            msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
+            msg += struct.pack(self.fmt, value)                #Packing value as an Int
 
         # Get the IP:Port from the key
         port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
@@ -68,36 +68,32 @@ class Wire:
         msg = obj.receive("", port)
 
         try:
-            command = struct.unpack(self.fmt, msg[0])                  #Unpack the command which is an Integer (I)
+            command = struct.unpack('B', msg[0])                  #Unpack the command which is an Integer (I)
             key = struct.unpack(self.fmt, msg[1:32])                   #Unpack the key which is an Int
             value_length = struct.unpack('<I', msg[33:35])      #Unpack the value_length which is a little endinan Int
             value = struct.unpack(msg[36:value_length])         #Unpack the value goes from Byte 36 to value_length
 
-            if command == Command.PUT:
-                ring.put(key, value)
-            elif command == Command.GET:
-                value = ring.get(key)
-            elif command == Command.REMOVE:
-                ring.remove(key)
-
-            response = Response.SUCCESS
-
+            #response = Response.SUCCESS
+            #print response, command, key, value_length, value
         except:
             # struct.error                                        #Produce error
             raise
 
         # @Abraham and Amitoj: un-pack the variable msg from its headers before the return
-        self.sendResponse(port, response, value_length, value)
+        #self.sendReply(port, command, response, value_length, value)
 
         return command, key, value_length, value
 
-    def sendResponse(self, port, response, value_length, value):
+    def sendReply(self, key, response, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
 
-        msg = struct.pack(self.fmt, response)               #Packing command as an Int
-        msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
-        msg += struct.pack(self.fmt, value)                #Packing value as an Int
+        msg = struct.pack('B', response)               #Packing command as an Int
 
-        #Get the IP from the key
+        if value_length > 0:
+            msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
+            msg += struct.pack(self.fmt, value)                #Packing value as an Int
+
+       # Get the IP:Port from the key
+        port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
         obj.send("127.0.0.1", port, msg)
