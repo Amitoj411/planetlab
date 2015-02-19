@@ -26,7 +26,9 @@ class Ring:
 
     def remove(self, key):
         try:
-            self.hashTable.pop(key, None)
+            val = self.hashTable[key]
+            del self.hashTable[key]
+            return val
         except:
             raise
 

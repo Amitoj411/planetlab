@@ -60,7 +60,7 @@ def receive_request():
 
         else:
             response = Response.UNRECOGNIZED
-            # wireObj.sendReply(key, response, 0, "")
+            wireObj.send_reply(key, response, 0, "")
 
 
 def user_input():
@@ -78,9 +78,9 @@ def user_input():
             key = raw_input('Please enter the key>')
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
-                print "KV[" + key + "]=" + kvTable.get(key)
+                print "KV[" + str(key) + "]=" + kvTable.get(key)
             else:
-                wireObj.send_request(Command.GET, key, len(""), "")
+                wireObj.send_request(Command.GET, key, 0, "")
                 response_code, value = wireObj.receive_reply()
                 print "Response:" + response_code, "Value: " +value
         elif nb == "3":
@@ -88,7 +88,7 @@ def user_input():
             value = raw_input('Please enter the value>')
             if hash(key) % int(N) == int(hashedKeyModN):
                 kvTable.put(key, value)
-                print "KV[" + key + "]=" + value
+                print "KV[" + str(key) + "]=" + value
             else:
                 wireObj.send_request(Command.PUT, key, len(value), value)
                 response_code, value = wireObj.receive_reply()
@@ -99,9 +99,9 @@ def user_input():
             key = raw_input('Please enter the key>')
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
-                print "Removing KV[" + key + "]=" + kvTable.remove(key)
+                print "Removing KV[" + str(key) + "]=" + kvTable.remove(key)
             else:
-                wireObj.send_request(Command.REMOVE, key, len(""), "")
+                wireObj.send_request(Command.REMOVE, key, 0, "")
                 response_code, value = wireObj.receive_reply()
                 print "Response:" + response_code
         else:
