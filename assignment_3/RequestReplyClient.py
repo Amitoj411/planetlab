@@ -5,6 +5,7 @@ import time
 import binascii
 import struct
 import udpSendRecieve
+from array import array
 
 
 class RequestReplyClient:
@@ -32,20 +33,30 @@ class RequestReplyClient:
         # ).upper()
         # )# IP 4 bytes
         # self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(self.local_port))))  # Port 2 bytes
-        # self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(time.strftime("%M")))))  # Local time 2 bytes
+        #  self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(time.strftime("%M")))))  # Local time 2 bytes
 
         ip = binascii.hexlify(
             socket.inet_aton(socket.gethostbyname(socket.gethostname()))
         ).upper()
-        port =  binascii.hexlify(
+        port = binascii.hexlify(
             struct.pack("H", int(self.local_port))
         ).upper()
 
-        local_time =  binascii.hexlify(
+        local_time = binascii.hexlify(
             struct.pack("H", int(time.strftime("%M")))
         ).upper()
         self.unique_request_id = ip + port + local_time
+
+        # self.message = binascii.hexlify(
+        #     # map(hex, array("B", self.message))
+        #     self.message
+        # )
+        # print "self.message:" + self.message
+        # to_send = str(self.unique_request_id) + str(self.message)
+        # print "to send:" + to_send
+
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
+        # print "sent: self.unique_request_id + self.message:"+ self.unique_request_id + self.message.encode('hex')
 
     def receive(self):
         resend_counter = 1
@@ -53,14 +64,21 @@ class RequestReplyClient:
         while resend_counter <= 3:
             try:
                 data, addr = self.udp_obj.receive(44444, timeout)
-                received_header = data[0:15]
-                data = data[16:]
+                received_header = data[0:16]
+                payload = data[16:]
+                # print "data:" + data
+                # print "unique_request_id:" + self.unique_request_id
+                # print "received_header:" + received_header +\
+                #       ", payload:" + payload +\
+                #       ", length:" + str(len(received_header))
+
                 if self.unique_request_id == received_header:
-                    return data
+                    return payload
             except socket.error:
                 resend_counter += 1
                 timeout *= 2
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
+                print "socket.error: " + str(socket.error)
                 print "Timeout: " + str(timeout) +"ms. Sending again, trail: " + str(resend_counter)
 
         return -1

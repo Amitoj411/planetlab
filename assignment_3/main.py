@@ -97,8 +97,8 @@ def user_input():
                     response = Response.OVERLOAD
                 except:
                     response = Response.STOREFAILURE
-
-                wireObj.send_reply(key, response, len(value_to_send), value_to_send)
+                print "response:" + response
+                # wireObj.send_reply(key, response, len(value_to_send), value_to_send)
 
             else:
                 wireObj.send_request(Command.GET, key, 0, "")
@@ -116,8 +116,8 @@ def user_input():
                     response = Response.OUTOFSPACE
                 except:
                     response = Response.STOREFAILURE
-
-                wireObj.send_reply(key, response, 0, "")
+                print "response:" + str(response)
+                # wireObj.send_reply(key, response, 0, "")
 
             else:
                 wireObj.send_request(Command.PUT, key, len(value), value)
@@ -140,12 +140,12 @@ def user_input():
                 except:
                     response = Response.STOREFAILURE
 
-                wireObj.send_reply(key, response, 0, "")
-
+                # wireObj.send_reply(key, response, 0, "")
+                print "response:" + response
             else:
                 wireObj.send_request(Command.REMOVE, key, 0, "")
                 response_code, value = wireObj.receive_reply()
-                print "Response:" + response_code
+                print "Response:" + str(response_code)
         else:
             # sys.exit("Exit normally.")
             os._exit(10)
