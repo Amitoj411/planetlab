@@ -16,8 +16,8 @@ import subprocess as sub
 
 def receive_request():
     while True:
-        command, key, value_length, value = wireObj.receive_request(hashedKeyModN)  # type: request/reply
-        print "Receive thread reporting..."
+        command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
+        print "Receive thread reporting. Receiving from:" + str(sender_addr)
         # print "Receiving:" + command
         # @Michael: Please handle the msg
         # You might receive get or put msgs from other nodes.
@@ -31,7 +31,7 @@ def receive_request():
             except:
                 response = Response.STOREFAILURE
 
-            wireObj.send_reply(key, response, 0, "")
+            wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
             try:
@@ -44,7 +44,7 @@ def receive_request():
             except:
                 response = Response.STOREFAILURE
 
-            wireObj.send_reply(key, response, len(value_to_send), value_to_send)
+            wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
             try:
@@ -57,7 +57,7 @@ def receive_request():
             except:
                 response = Response.STOREFAILURE
 
-            wireObj.send_reply(key, response, 0, "")
+            wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.SHUTDOWN:
             try:
@@ -69,7 +69,7 @@ def receive_request():
             wireObj.send_reply(key, response, 0, "")
         else:
             response = Response.UNRECOGNIZED
-            wireObj.send_reply(key, response, 0, "")
+            wireObj.send_reply(sender_addr, key, response, 0, "")
 
 
 def user_input():

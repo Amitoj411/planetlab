@@ -47,9 +47,9 @@ class Wire:
 
         # print len(msg)
         #  Get the IP:Port from the key
-        port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
-        local_port = self.lookUp(self.hashedKeyModN)
-        self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient("127.0.0.1", port, msg, local_port, .1)
+        ip_port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
+        local_ip_port = self.lookUp(self.hashedKeyModN)
+        self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0], ip_port.split(':')[1], msg, local_ip_port.split(':')[1], 2)
         self.RequestReplyClient_obj.send()
 
     def receive_reply(self):
@@ -75,8 +75,8 @@ class Wire:
     RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999)  # listen infinitly
 
     def receive_request(self, hashedKeyMod):
-        port = self.lookUp(hashedKeyMod)
-        header, msg = self.RequestReplyServer_obj.receive(port)
+        ip_port = self.lookUp(hashedKeyMod)
+        header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1])
 
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:37])
@@ -92,11 +92,11 @@ class Wire:
         # self.sendReply(port, command, response, value_length, value)
         key = key.rstrip('\0')
         value = value[0]
-        return command, key, value_length, value
+        return command, key, value_length, value , addr
 
-    def send_reply(self, key, response_code, value_length, value):
+    def send_reply(self, sender_addr, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-
+        print "send_reply: " + str(sender_addr) + "value: "+ value
         fmt = self.fmtReply
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
@@ -106,7 +106,7 @@ class Wire:
         #     msg += struct.pack(self.fmt, value)                #Packing value as an Int
 
         #  Get the IP:Port from the key
-        port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
-        self.RequestReplyServer_obj.send("127.0.0.1", port, msg)
+        # port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
+        self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
 
 

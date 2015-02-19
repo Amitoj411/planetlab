@@ -9,7 +9,7 @@ import udpSendRecieve
 
 class RequestReplyClient:
     udp_obj = udpSendRecieve.UDPNetwork()
-    timeout = .1  # 100 ms by default unless changed by constructor
+    timeout = 2  # 100 ms by default unless changed by constructor
     # For retransmission
     unique_request_id = "" # last id was send. Used to match the most recent received one
     udp_ip = ""
@@ -49,17 +49,19 @@ class RequestReplyClient:
 
     def receive(self):
         resend_counter = 1
+        timeout = self.timeout
         while resend_counter <= 3:
             try:
-                data = self.udp_obj.receive(int(self.udp_port) + 1000, self.timeout * self.timeout)
+                data, addr = self.udp_obj.receive(44444, timeout)
                 received_header = data[0:15]
                 data = data[16:]
                 if self.unique_request_id == received_header:
                     return data
             except socket.error:
                 resend_counter += 1
+                timeout *= 2
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
-                print "Timeout 100 ms. Sending again, trail: " + str(resend_counter)
+                print "Timeout: " + str(timeout) +"ms. Sending again, trail: " + str(resend_counter)
 
         return -1
 
