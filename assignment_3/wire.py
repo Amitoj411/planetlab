@@ -1,19 +1,27 @@
 __author__ = 'Owner'
-import udpSendRecieve
+import RequestReplyClient
+import RequestReplyServer
 import struct
 import Command
+import Response
+import udpSendRecieve
 
 class Wire:
     description = "This is implemented on top of the request/reply protocol you developed for A1 " \
                   "(i.e., using UDP, the process for unique IDs, timeouts, etc). " \
                   " The following describes the format of the application level messages exchanged using that protocol"
     numberOfNodes = 0
-    fmt = "s" #Format of Data
+    hashedKeyModN = -1
+    fmtRequest = "<B32sI"  # Format of Data to be cont. later in the function
+    fmtReply = "<BI"
+    request_reply_obj = RequestReplyClient.RequestReplyClient()
 
-    def __init__(self, numberOfNodes):
+
+    def __init__(self, numberOfNodes, hashedKeyModN):
         self.numberOfNodes = numberOfNodes
+        self.hashedKeyModN = hashedKeyModN
 
-    def lookUp(self, hashedKeyMod): # (i.e.) key=apple return the port 50000
+    def lookUp(self, hashedKeyMod):  # (i.e.) key=apple return the port 50000
         _file = open('node_list.txt', 'rU')
         nodes = _file.readlines()
 
@@ -24,76 +32,76 @@ class Wire:
 
         return -1
 
-        #  1. Command is 1 byte long. It can be:
-        #     0x01. This is a put operation.
-        #     0x02. This is a get operation.
-        #     0x03. This is a remove operation.
-        #     [Note: We may add some management operations, the message format will stay the same. For example:]
-        #     0x04. Command to shutdown the node (think of this as an announced failure).
-        #            The operation is asynchronous: returning success means that the node acknowledges receiving
-        #            the command at it will shutdown as soon as possible.
-        #     anything > 0x20. Your own commands if you want.
-        # 2. The key is 32 bytes long. This is the identification of the value.
-        # 3. The length of the value: integer represented on two bytes.  Maximum value 15,000.
-        #    Only used for put operation.
-        # 4.  Value. Byte array. Only used for put operation.
-    def send(self, command, key, value_length, value):
+    # Client functions:
+    def send_request(self, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-
-        msg = struct.pack('B', command)               #Packing command as an Int
-        msg += struct.pack(self.fmt, key)                  #Packing Key as an Int
-
+        fmt = self.fmtRequest
         if command == Command.PUT:
-            msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
-            msg += struct.pack(self.fmt, value)                #Packing value as an Int
+            fmt += str(value_length) + 's'
+            msg = struct.pack(fmt, command, key, value_length, value)                #Packing value as an Int
+        else:  # other commands
+            fmt += '0s'  # hope to receive value of null with length 1
+            msg = struct.pack(fmt, command, key, value_length, value)                  #Packing Key as an Int
 
-        # Get the IP:Port from the key
-        port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
-        obj = udpSendRecieve.UDPNetwork()
-        obj.send("127.0.0.1", port, msg)
+        # print len(msg)
+        #  Get the IP:Port from the key
+        port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
+        local_port = self.lookUp(self.hashedKeyModN)
+        self.request_reply_obj = RequestReplyClient.RequestReplyClient("127.0.0.1", port, msg, local_port, .1)
+        self.request_reply_obj.send()
 
-        # 1. The code is 1 byte long. It can be:
-        # 0x00. This means the operation is successful.
-        # 0x01.  Non-existent key requested in a get or delete operation
-        # 0x02.  Out of space  (returned when there is no space left for a put).
-        # 0x03.  System overload.
-        # 0x04.  Internal KVStore failure
-        # 0x05.  Unrecognized command.
-        #      [possibly more standard codes will get defined here]
-        # anything > 0x20. Your own error codes. [Define them in your Readme]
+    def receive_reply(self):
+        request_reply_response = self.request_reply_obj.receive()
+        if request_reply_response == -1:
+            return Response.RPNOREPLY
+        else:
+            try:
+                response_code, value_length = struct.unpack(self.fmtReply, request_reply_response[0:4])
+                if response_code == 1 and value_length != 0:  # operation is successful and there is a value.
+                    value_fmt = str(value_length) + 's'
+                    value = struct.unpack(value_fmt, request_reply_response[5:])
+                else:  # Other commands
+                    value = ("",)
 
-    def receive(self, hashedKeyMod):
+            except:
+                raise
+
+        return response_code, value
+
+    # Server functions:
+    def receive_request(self, hashedKeyMod):
         port = self.lookUp(hashedKeyMod)
-        obj = udpSendRecieve.UDPNetwork()
-        msg = obj.receive("", port)
+        obj = RequestReplyServer.RequestReplyServer(.1)
+        header, msg = obj.receive("", port)
 
         try:
-            command = struct.unpack('B', msg[0])                  #Unpack the command which is an Integer (I)
-            key = struct.unpack(self.fmt, msg[1:32])                   #Unpack the key which is an Int
-            value_length = struct.unpack('<I', msg[33:35])      #Unpack the value_length which is a little endinan Int
-            value = struct.unpack(msg[36:value_length])         #Unpack the value goes from Byte 36 to value_length
-
-            #response = Response.SUCCESS
-            #print response, command, key, value_length, value
+            command, key, value_length = struct.unpack(self.fmtRequest, msg[0:37])
+            if command == 1: #PUT
+                value_fmt = str(value_length) + 's'
+                value = struct.unpack(value_fmt, msg[37:])
+            else:  # Other commands
+                value = ("",)
         except:
-            # struct.error                                        #Produce error
             raise
 
         # @Abraham and Amitoj: un-pack the variable msg from its headers before the return
-        #self.sendReply(port, command, response, value_length, value)
-
+        # self.sendReply(port, command, response, value_length, value)
+        key = key.rstrip('\0')
+        value = value[0]
         return command, key, value_length, value
 
-    def sendReply(self, key, response, value_length, value):
+    def send_reply(self, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
 
-        msg = struct.pack('B', response)               #Packing command as an Int
+        fmt = self.fmtReply
+        fmt += str(value_length) + 's'
+        msg = struct.pack(fmt, response_code, value_length, value)
 
-        if value_length > 0:
-            msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
-            msg += struct.pack(self.fmt, value)                #Packing value as an Int
+        #  if value_length > 0:
+        #     msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
+        #     msg += struct.pack(self.fmt, value)                #Packing value as an Int
 
-       # Get the IP:Port from the key
+        #  Get the IP:Port from the key
         port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
-        obj.send("127.0.0.1", port, msg)
+        obj.send("127.0.0.1", port + 10, msg)

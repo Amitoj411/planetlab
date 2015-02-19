@@ -4,27 +4,17 @@ import socket
 
 
 class UDPNetwork:
-    # UDP_IP = "127.0.0.1"
-    # UDP_PORT = 5005
-    # MESSAGE = "Hello, World!"
-
-    # def __init__(self, udp_ip, udp_port, message):
-        # self.MESSAGE = message
-        # self.UDP_IP = udp_ip
-        # self.UDP_PORT = udp_port
-
-    def send(self,  udp_ip, udp_port, message):
+    def send(self, udp_ip, udp_port, message, local_port):
         sock = socket.socket(socket.AF_INET, # Internet
                              socket.SOCK_DGRAM) # UDP
-        sock.sendto(message, (udp_ip, int(udp_port)))
+        sock.sendto( message, (udp_ip, int(udp_port)))
 
-    def receive(self, udp_ip, udp_port):
+    def receive(self, udp_port, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(("", int(udp_port)))
-
+        sock.settimeout(timeout)  # 100 ms be default
         while True:
             data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
-            print "received message: ", data
             break
         return data
 

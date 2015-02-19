@@ -10,3 +10,5 @@ The second is the id of the current node. Ideally we will run
 For now just run
     main.py 3 0
 
+CUSTOM RESPONSE
+Response.RPNOREPLY: request reply is reporting dead server
