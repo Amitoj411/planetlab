@@ -13,9 +13,9 @@ import os
     # wireObj.send(Command.PUT, key, len(value), value)  # @Abraham & @Amitoj
 
 
-def receive():
+def receive_request():
     while True:
-        type, command, key, value_length, value = wireObj.receive(hashedKeyModN)  # type: request/reply
+        command, key, value_length, value = wireObj.receive_request(hashedKeyModN)  # type: request/reply
         print "Receive thread reporting..."
         # print "Receiving:" + command
         # @Michael: Please handle the msg
@@ -30,7 +30,7 @@ def receive():
             except:
                 response = Response.STOREFAILURE
 
-            # wireObj.sendReply(key, response, 0, "")
+            wireObj.send_reply(key, response, 0, "")
 
         elif command == Command.GET:
             try:
@@ -43,7 +43,7 @@ def receive():
             except:
                 response = Response.STOREFAILURE
 
-            wireObj.sendReply(key, response, len(value_to_send), value_to_send)
+            wireObj.send_reply(key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
             try:
@@ -56,7 +56,7 @@ def receive():
             except:
                 response = Response.STOREFAILURE
 
-            # wireObj.sendReply(key, response, 0, "")
+            wireObj.send_reply(key, response, 0, "")
 
         else:
             response = Response.UNRECOGNIZED
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     kvTable = ring.Ring()
     wireObj = wire.Wire(int(N), hashedKeyModN)
 
-    receiveThread = threading.Thread(target=receive)
+    receiveThread = threading.Thread(target=receive_request)
     receiveThread.start()
 
     userInputThread = threading.Thread(target=user_input)

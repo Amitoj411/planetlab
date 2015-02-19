@@ -27,11 +27,12 @@ class RequestReplyClient:
     def send(self):
         # Prepare the header as A1
         self.unique_request_id = bytearray(16)
-        self.unique_request_id += binascii.hexlify(
+        self.unique_request_id.append( binascii.hexlify(
             socket.inet_aton(socket.gethostbyname(socket.gethostname()))
-        ).upper()  # IP 4 bytes
-        self.unique_request_id += struct.unpack("xH", self.local_port)  # Port 2 bytes
-        self.unique_request_id += struct.unpack("xH", time.localtime()) # Local time 2 bytes
+        ).upper()
+        )# IP 4 bytes
+        self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(self.local_port))))  # Port 2 bytes
+        self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(time.strftime("%M")))))  # Local time 2 bytes
 
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
 
@@ -39,7 +40,7 @@ class RequestReplyClient:
         resend_counter = 1
         while resend_counter <= 3:
             try:
-                data = self.udp_obj.receive(self.udp_port + 10, self.timeout * self.timeout)
+                data = self.udp_obj.receive(self.udp_port + 1000, self.timeout * self.timeout)
                 received_header = data[0:15]
                 data = data[16:]
                 if self.unique_request_id == received_header:

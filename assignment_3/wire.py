@@ -4,7 +4,7 @@ import RequestReplyServer
 import struct
 import Command
 import Response
-import udpSendRecieve
+
 
 class Wire:
     description = "This is implemented on top of the request/reply protocol you developed for A1 " \
@@ -14,7 +14,7 @@ class Wire:
     hashedKeyModN = -1
     fmtRequest = "<B32sI"  # Format of Data to be cont. later in the function
     fmtReply = "<BI"
-    request_reply_obj = RequestReplyClient.RequestReplyClient()
+
 
 
     def __init__(self, numberOfNodes, hashedKeyModN):
@@ -33,6 +33,8 @@ class Wire:
         return -1
 
     # Client functions:
+    RequestReplyClient_obj = None
+
     def send_request(self, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
@@ -47,11 +49,11 @@ class Wire:
         #  Get the IP:Port from the key
         port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
         local_port = self.lookUp(self.hashedKeyModN)
-        self.request_reply_obj = RequestReplyClient.RequestReplyClient("127.0.0.1", port, msg, local_port, .1)
-        self.request_reply_obj.send()
+        self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient("127.0.0.1", port, msg, local_port, .1)
+        self.RequestReplyClient_obj.send()
 
     def receive_reply(self):
-        request_reply_response = self.request_reply_obj.receive()
+        request_reply_response = self.RequestReplyClient_obj.receive()
         if request_reply_response == -1:
             return Response.RPNOREPLY
         else:
@@ -69,10 +71,11 @@ class Wire:
         return response_code, value
 
     # Server functions:
+    RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999)  # listen infinitly
+
     def receive_request(self, hashedKeyMod):
         port = self.lookUp(hashedKeyMod)
-        obj = RequestReplyServer.RequestReplyServer(.1)
-        header, msg = obj.receive("", port)
+        header, msg = self.RequestReplyServer_obj.receive(port)
 
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:37])
@@ -103,5 +106,6 @@ class Wire:
 
         #  Get the IP:Port from the key
         port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
-        obj = udpSendRecieve.UDPNetwork()
-        obj.send("127.0.0.1", port + 10, msg)
+        self.RequestReplyServer_obj.send("127.0.0.1", port, msg)
+
+
