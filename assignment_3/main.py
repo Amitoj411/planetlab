@@ -7,6 +7,7 @@ import threading
 import Command
 import Response
 import os
+import subprocess as sub
 
 
 # def sendAndWaitForAReply(key, value):
@@ -58,6 +59,14 @@ def receive_request():
 
             wireObj.send_reply(key, response, 0, "")
 
+        elif command == Command.SHUTDOWN:
+            try:
+                sub.Popen(''' shutdown ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()
+                response = Response.SUCCESS
+            except:
+                response = Response.RPNOREPLY
+
+            wireObj.send_reply(key, response, 0, "")
         else:
             response = Response.UNRECOGNIZED
             wireObj.send_reply(key, response, 0, "")
@@ -78,7 +87,19 @@ def user_input():
             key = raw_input('Please enter the key>')
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
-                print "KV[" + str(key) + "]=" + kvTable.get(key)
+                try:
+                    value_to_send = kvTable.get(key)
+                    print "KV[" + str(key) + "]=" + kvTable.get(key)
+                    response = Response.SUCCESS
+                except KeyError:
+                    response = Response.NONEXISTENTKEY
+                except MemoryError:
+                    response = Response.OVERLOAD
+                except:
+                    response = Response.STOREFAILURE
+
+                wireObj.send_reply(key, response, len(value_to_send), value_to_send)
+
             else:
                 wireObj.send_request(Command.GET, key, 0, "")
                 response_code, value = wireObj.receive_reply()
@@ -87,8 +108,17 @@ def user_input():
             key = raw_input('Please enter the key>')
             value = raw_input('Please enter the value>')
             if hash(key) % int(N) == int(hashedKeyModN):
-                kvTable.put(key, value)
-                print "KV[" + str(key) + "]=" + value
+                try:
+                    kvTable.put(key, value)
+                    print "KV[" + str(key) + "]=" + value
+                    response = Response.SUCCESS
+                except IOError:
+                    response = Response.OUTOFSPACE
+                except:
+                    response = Response.STOREFAILURE
+
+                wireObj.send_reply(key, response, 0, "")
+
             else:
                 wireObj.send_request(Command.PUT, key, len(value), value)
                 response_code, value = wireObj.receive_reply()
@@ -99,7 +129,19 @@ def user_input():
             key = raw_input('Please enter the key>')
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
-                print "Removing KV[" + str(key) + "]=" + kvTable.remove(key)
+                try:
+                    value = kvTable.remove(key)
+                    print "Removing KV[" + str(key) + "]=" + value
+                    response = Response.SUCCESS
+                except KeyError:
+                    response = Response.NONEXISTENTKEY
+                except MemoryError:
+                    response = Response.OVERLOAD
+                except:
+                    response = Response.STOREFAILURE
+
+                wireObj.send_reply(key, response, 0, "")
+
             else:
                 wireObj.send_request(Command.REMOVE, key, 0, "")
                 response_code, value = wireObj.receive_reply()
