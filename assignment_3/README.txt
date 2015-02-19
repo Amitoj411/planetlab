@@ -5,13 +5,16 @@ The first shell argument is the number of nodes in system
 The second is the id of the current node number (0-2^(n-1)).
 
 Ideally we will run
-    main.pyc 3 0
-    main.pyc 3 1
-    main.pyc 3 2
+    python2.7 main.pyc 3 0
+    python2.7 main.pyc 3 1
+    python2.7 main.pyc 3 2
 on the following three nodes, respectively:
     planetlab1.cs.ubc.ca
     planetlab2.cs.ubc.ca
     cs-planetlab3.cs.surrey.sfu.ca
+
+For now just run
+    python2.7 main.pyc 3 0
 
 #######################
 ## User menu
