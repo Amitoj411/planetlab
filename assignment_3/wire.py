@@ -40,15 +40,15 @@ class Wire:
     def send(self, command, key, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
 
-        msg = struct.pack('B', command)               #Packing command as an Int
-        msg += struct.pack(self.fmt, key)                  #Packing Key as an Int
+        msg = struct.pack('B', command)               #Packing command as a single byte
+        msg += struct.pack('I', key)                  #Packing Key as an Int
 
         if command == Command.PUT:
             msg += struct.pack('<I', value_length)      #Packing value_length as an Little Endian Int
             msg += struct.pack(self.fmt, value)                #Packing value as an Int
 
         # Get the IP:Port from the key
-        port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
+        port = self.lookUp(key%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
         obj.send("127.0.0.1", port, msg)
 
@@ -69,12 +69,10 @@ class Wire:
 
         try:
             command = struct.unpack('B', msg[0])                  #Unpack the command which is an Integer (I)
-            key = struct.unpack(self.fmt, msg[1:32])                   #Unpack the key which is an Int
+            key = struct.unpack('I', msg[1:32])                   #Unpack the key which is an Int
             value_length = struct.unpack('<I', msg[33:35])      #Unpack the value_length which is a little endinan Int
             value = struct.unpack(msg[36:value_length])         #Unpack the value goes from Byte 36 to value_length
 
-            #response = Response.SUCCESS
-            #print response, command, key, value_length, value
         except:
             # struct.error                                        #Produce error
             raise
@@ -94,6 +92,6 @@ class Wire:
             msg += struct.pack(self.fmt, value)                #Packing value as an Int
 
        # Get the IP:Port from the key
-        port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
+        port = self.lookUp(key%self.numberOfNodes) # Will be changed later to return the IP
         obj = udpSendRecieve.UDPNetwork()
         obj.send("127.0.0.1", port, msg)

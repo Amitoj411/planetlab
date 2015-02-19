@@ -68,15 +68,19 @@ def user_input():
             kvTable._print()
         elif nb == "2":
             key = raw_input('Please enter the key>')
+            key = hash(key)
+
             # Check if the key is stored locally else send a request
-            if hash(key) % int(N) == int(hashedKeyModN):
+            if key % int(N) == int(hashedKeyModN):
                 print "KV[" + key + "]=" + kvTable.get(key)
             else:
                 wireObj.send(Command.GET, key, "", "")
         elif nb == "3":
             key = raw_input('Please enter the key>')
             value = raw_input('Please enter the value>')
-            if hash(key) % int(N) == int(hashedKeyModN):
+            key = hash(key)
+
+            if key % int(N) == int(hashedKeyModN):
                 kvTable.put(key, value)
                 print "KV[" + key + "]=" + value
             else:
