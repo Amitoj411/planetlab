@@ -26,7 +26,7 @@ class RequestReplyServer:
 
     def send(self, udp_ip, udp_port, message):
         # Prepare the header as A1
-        self.udp_obj.send(udp_ip, udp_port + 1000, self.unique_request_id + message)
+        self.udp_obj.send(udp_ip, int(udp_port) + 1000, self.unique_request_id + message)
 
     def receive(self, udp_port):
         while True:

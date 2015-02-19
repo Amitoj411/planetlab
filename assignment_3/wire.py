@@ -55,7 +55,8 @@ class Wire:
     def receive_reply(self):
         request_reply_response = self.RequestReplyClient_obj.receive()
         if request_reply_response == -1:
-            return Response.RPNOREPLY
+            response_code= Response.RPNOREPLY
+            value = -1
         else:
             try:
                 response_code, value_length = struct.unpack(self.fmtReply, request_reply_response[0:4])

@@ -82,7 +82,7 @@ def user_input():
             else:
                 wireObj.send_request(Command.GET, key, 0, "")
                 response_code, value = wireObj.receive_reply()
-                print "Response:" + response_code, "Value: " +value
+                print "Response:" + str(response_code), "Value: " + str(value)
         elif nb == "3":
             key = raw_input('Please enter the key>')
             value = raw_input('Please enter the value>')
@@ -92,7 +92,7 @@ def user_input():
             else:
                 wireObj.send_request(Command.PUT, key, len(value), value)
                 response_code, value = wireObj.receive_reply()
-                print "Response:" + response_code
+                print "Response:" + str(response_code)
                 # sendAndWaitForAReplyThread = threading.Thread(target=sendAndWaitForAReply, args=(key, value))
                 # sendAndWaitForAReplyThread.start()
         elif nb == "4":
