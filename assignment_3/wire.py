@@ -13,8 +13,8 @@ class Wire:
                   " The following describes the format of the application level messages exchanged using that protocol"
     numberOfNodes = 0
     hashedKeyModN = -1
-    fmtRequest = "<B32sI"  # Format of Data to be cont. later in the function
-    fmtReply = "<BI"
+    fmtRequest = "<B32sH"  # Format of Data to be cont. later in the function
+    fmtReply = "<BH"
 
 
 
@@ -52,7 +52,8 @@ class Wire:
         local_ip_port = self.lookUp(self.hashedKeyModN)
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
                                                                             ip_port.split(':')[1],
-                                                                            binascii.hexlify(msg),
+                                                                            # binascii.hexlify(msg),
+                                                                            msg,
                                                                             local_ip_port.split(':')[1],
                                                                             2)
 
@@ -66,11 +67,12 @@ class Wire:
             value = -1
         else:
             try:
-                request_reply_response = binascii.unhexlify(request_reply_response)
-                response_code, value_length = struct.unpack(self.fmtReply, request_reply_response[0:5])
+                # request_reply_response = binascii.unhexlify(request_reply_response)
+                request_reply_response = request_reply_response
+                response_code, value_length = struct.unpack(self.fmtReply, request_reply_response[0:3])
                 if response_code == 1 and value_length != 0:  # operation is successful and there is a value.
                     value_fmt = str(value_length) + 's'
-                    value = struct.unpack(value_fmt, request_reply_response[5:])
+                    value = struct.unpack(value_fmt, request_reply_response[3:])
                 else:  # Other commands
                     value = ("",)
 
@@ -86,12 +88,12 @@ class Wire:
         ip_port = self.lookUp(hashedKeyMod)
         header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1])
         # print "msg:[0:37]" + msg[0:37] + "msg[0:37] length: " + str(len(msg[0:37]))
-        msg = binascii.unhexlify(msg)
+        # msg = binascii.unhexlify(msg)
         try:
-            command, key, value_length = struct.unpack(self.fmtRequest, msg[0:37])
+            command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
             if command == 1: #PUT
                 value_fmt = str(value_length) + 's'
-                value = struct.unpack(value_fmt, msg[37:])
+                value = struct.unpack(value_fmt, msg[35:])
             else:  # Other commands
                 value = ("",)
         except:
@@ -105,7 +107,7 @@ class Wire:
 
     def send_reply(self, sender_addr, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-        print "send_reply: " + str(sender_addr) + ",value: "+ value + ", value length: " + str(value_length)
+        print "send_reply: " + str(sender_addr) + ", response_code: " + str(response_code) + ", value: "+ value + ", value length: " + str(value_length)
         fmt = self.fmtReply
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
@@ -116,6 +118,7 @@ class Wire:
 
         #  Get the IP:Port from the key
         # port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
-        self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
+        # self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
+        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
 
 
