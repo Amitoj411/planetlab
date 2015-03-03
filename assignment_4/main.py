@@ -7,6 +7,7 @@ import threading
 import Command
 import Response
 import os
+import NodeCommunication
 import subprocess as sub
 
 
@@ -79,7 +80,8 @@ def user_input():
         print "     2- Get a value for a key (KV[key]):"
         print "     3- Put a value for a key (KV[key]=value):"
         print "     4- Remove a key from KV):"
-        print "     5- Exit"
+        print "     5- Search for a key:"
+        print "     6- Exit"
         nb = raw_input('>')
         if nb == "1":
             kvTable._print()
@@ -146,6 +148,10 @@ def user_input():
                 wireObj.send_request(Command.REMOVE, key, 0, "")
                 response_code, value = wireObj.receive_reply()
                 print "Response:" + str(response_code)
+        elif nb == "5":
+            key = raw_input('Please enter the key>')
+            output = nodeCommunicationObj.search(key)
+            print "The Result is: " + str(output)
         else:
             # sys.exit("Exit normally.")
             os._exit(10)
@@ -158,6 +164,8 @@ if __name__ == "__main__":
 
     kvTable = ring.Ring()
     wireObj = wire.Wire(int(N), hashedKeyModN)
+
+    nodeCommunicationObj = NodeCommunication.NodeCommunication(int(N))
 
     receiveThread = threading.Thread(target=receive_request)
     receiveThread.start()

@@ -13,17 +13,17 @@ class NodeCommunication:
     #Given a key, the nodeID of the first alive node is returned.
     #The returned nodeID may or may not contain the specified key. Use the returned nodeID to call subsequent operations.
     def search(self, key):
-        nodeID = hash(key) % numberOfNodes
+        nodeID = hash(key) % self.numberOfNodes
 
         iNode = nodeID
-        while iNode != nodeID:
+        while iNode == nodeID:                  #Have to fix because it won't run first time if !=
             try:
-                wireObj = wire.Wire(numberOfNodes, nodeID)
-                wireObj.send_request(Command.GET, key, 0, 0)
+                wireObj = wire.Wire(self.numberOfNodes, nodeID)
+                wireObj.send_request(Command.GET, key, 0, "")
                 response_code, value = wireObj.receive_reply()
 
                 if response_code == Response.RPNOREPLY:
-                    iNode = (iNode - 1) % numberOfNodes
+                    iNode = (iNode - 1) % self.numberOfNodes
                 else:
                     return iNode
                     break
@@ -31,3 +31,4 @@ class NodeCommunication:
                 raise
 
         return None
+
