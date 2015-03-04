@@ -35,6 +35,8 @@ def receive_request():
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
+            value_to_send = ""
+
             try:
                 value_to_send = kvTable.get(key)
                 response = Response.SUCCESS
@@ -61,13 +63,8 @@ def receive_request():
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.SHUTDOWN:
-            try:
-                sub.Popen(''' shutdown ''', stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()
-                response = Response.SUCCESS
-            except:
-                response = Response.RPNOREPLY
+            os._exit(10)
 
-            wireObj.send_reply(key, response, 0, "")
         else:
             response = Response.UNRECOGNIZED
             wireObj.send_reply(sender_addr, key, response, 0, "")

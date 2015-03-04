@@ -108,6 +108,6 @@ class Wire:
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
 
-        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
+        self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
 
 

@@ -72,6 +72,8 @@ class RequestReplyClient:
                 #       ", payload:" + payload +\
                 #       ", length:" + str(len(received_header))
 
+                print "Unique ID: " + str(self.unique_request_id) + " received_header: " + str(received_header) + "\n"
+
                 if self.unique_request_id == received_header:
                     return payload
             except socket.error:
