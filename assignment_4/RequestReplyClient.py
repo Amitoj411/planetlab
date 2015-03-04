@@ -35,10 +35,16 @@ class RequestReplyClient:
         # self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(self.local_port))))  # Port 2 bytes
         #  self.unique_request_id.append(struct.unpack("xH", struct.pack("i", int(time.strftime("%M")))))  # Local time 2 bytes
 
-        ip = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
-        port = struct.pack("H", int(self.local_port))
+        ip = binascii.hexlify(
+            socket.inet_aton(socket.gethostbyname(socket.gethostname()))
+        ).upper()
+        port = binascii.hexlify(
+            struct.pack("H", int(self.local_port))
+        ).upper()
 
-        local_time = struct.pack("H", int(time.strftime("%M")))
+        local_time = binascii.hexlify(
+            struct.pack("H", int(time.strftime("%M")))
+        ).upper()
         self.unique_request_id = ip + port + local_time
 
         # self.message = binascii.hexlify(
