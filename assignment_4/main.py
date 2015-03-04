@@ -99,7 +99,7 @@ def user_input():
                     response = Response.OVERLOAD
                 except:
                     response = Response.STOREFAILURE
-                print "response:" + response
+                print "response:" + str(response)
                 # wireObj.send_reply(key, response, len(value_to_send), value_to_send)
 
             else:
@@ -143,7 +143,7 @@ def user_input():
                     response = Response.STOREFAILURE
 
                 # wireObj.send_reply(key, response, 0, "")
-                print "response:" + response
+                print "response:" + str(response)
             else:
                 wireObj.send_request(Command.REMOVE, key, 0, "")
                 response_code, value = wireObj.receive_reply()

@@ -16,14 +16,16 @@ class NodeCommunication:
         nodeID = hash(key) % self.numberOfNodes
 
         iNode = nodeID
-        while iNode == nodeID:                  #Have to fix because it won't run first time if !=
+        while True:                  #Have to fix because it won't run first time if !=
             try:
-                wireObj = wire.Wire(self.numberOfNodes, nodeID)
+                wireObj = wire.Wire(self.numberOfNodes, iNode)
                 wireObj.send_request(Command.GET, key, 0, "")
                 response_code, value = wireObj.receive_reply()
 
                 if response_code == Response.RPNOREPLY:
                     iNode = (iNode - 1) % self.numberOfNodes
+                    if iNode == nodeID:
+                        break;
                 else:
                     return iNode
                     break
