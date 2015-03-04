@@ -118,7 +118,7 @@ class Wire:
 
         #  Get the IP:Port from the key
         # port = self.lookUp(hash(key)%self.numberOfNodes) # Will be changed later to return the IP
-        # self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
-        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
+        self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
+        # self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
 
 
