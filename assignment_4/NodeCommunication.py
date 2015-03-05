@@ -31,45 +31,53 @@ class NodeCommunication:
     #  Given a key, the nodeID of the first alive node is returned.
     # The returned nodeID may or may not contain the specified key.
     # Use the returned nodeID to call subsequent operations.
-    def search(self, key, hashedKeyModN):
-        nodeID = hash(key) % self.numberOfNodes
+    # Return: 'cursor' if you find a successor other than yourself
+    # Return: '-2' if the local node is the successor or if you are only alive node in the network
+    def search(self, key, localNode):
+        hashedNodeID = hash(key) % self.numberOfNodes
 
-        if nodeID == int(hashedKeyModN):
-            print "The Key is stored locally"
-            return hashedKeyModN
+        # Key Locally Stored - Preliminary check to see if you are the node the key should be stored on.
+        if hashedNodeID == int(localNode):
+            print "The Key should be stored locally"
+            return localNode
 
-        iNode = nodeID
+        cursor = hashedNodeID           # Cursor goes through the range of nodes in our system
         while True:
             try:
-                wireObj = wire.Wire(self.numberOfNodes, iNode)
-
-                #Added to exclude yourself from being searched
-                if iNode == int(hashedKeyModN):
-                    if iNode != 0:
-                        iNode = iNode - 1
-                        if iNode == nodeID:
+                # Added to exclude yourself from being searched
+                # If cursor is equal to localNode then return -2
+                if cursor == int(localNode):
+                    if cursor != 0:
+                        cursor -= 1
+                        if cursor == hashedNodeID:
                             return -2
                     else:
-                        iNode = self.numberOfNodes-1
+                        cursor = self.numberOfNodes - 1
 
-                wireObj.send_request(Command.GET, key, 0, "", iNode)
-                print "Searching in Node:  " + str(iNode)
+                # Try to contact the cursor
+                wireObj = wire.Wire(self.numberOfNodes, cursor)
+                wireObj.send_request(Command.GET, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply()
-                print "Response: " + self.print_response(response_code)
+                print "Searched for node " + str(cursor) + " and received response: " + self.print_response(response_code)
 
+                # If receive no reply from the cursor node, point cursor to the next node
                 if response_code == Response.RPNOREPLY:
-                    if iNode - 1 < 0:
-                        iNode = self.numberOfNodes-1
+                    if cursor - 1 < 0:
+                        cursor = self.numberOfNodes - 1
                     else:
-                        iNode = (iNode - 1) % self.numberOfNodes
+                        cursor = (cursor - 1) % self.numberOfNodes
 
-                    if iNode == nodeID:
+                    # Stop if you have looped back around to the original cursor
+                    if cursor == hashedNodeID:
                         break
+
+                # If we don't receive a timeout return the cursor i.e. it is a alive,
+                # then return the cursor.
                 else:
-                    return iNode                #Return iNode if the node is reachable i.e. No Timeout (RPNOREPLY)
+                    return cursor
             except:
                 raise
-
+        # Return -2 if
         return -2
 
     def successor(self, node_id):
