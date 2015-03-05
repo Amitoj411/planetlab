@@ -58,7 +58,6 @@ class Wire:
         if node_overwrite == -1:
             ip_port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
             print "node_overwrite DISABLED and ip_port is: " + str(ip_port) + "  Message: " + str(msg)
-
         else:
             ip_port = self.lookUp(node_overwrite)  # Will be changed later to return the IP
             print "node_overwrite ENABLED " + str(node_overwrite) + "  ip_port: " + str(ip_port) + "  Message: " + str(msg)
@@ -118,7 +117,7 @@ class Wire:
         value = value[0]
         return command, key, value_length, value , addr
 
-    def send_reply(self, sender_addr, key, response_code, value_length, value):
+    def send_reply(self, sender_addr, key, response_code, value_length, value, node_id):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         print "send_reply: " + str(sender_addr) + ", response_code: " + str(response_code) + ", value: "+ value + ", value length: " + str(value_length)
         fmt = self.fmtReply

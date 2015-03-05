@@ -66,16 +66,18 @@ def receive_request():
             os._exit(10)
 
         elif command == Command.JOIN:
-            joinID = value
+            join_id= value
             for key in kvTable:
-                if hash(key)%int(N) == joinID: #ensure joinID is the ID of the predecessor
-                    keyvalue = kvTable(key)
-                    wireObj.send_request(Command.PUT, key, len(keyvalue), keyvalue)
+                if hash(key) % int(N) == join_id: #ensure joinID is the ID of the predecessor
+                    key_value = kvTable(key)
+                    wireObj.send_request(Command.PUT, key, len(key_value), key_value)
                     response_code, value = wireObj.receive_reply()
                     if response_code == Response.SUCCESS:
                         kvTable.remove(key)
+                    else:
+                        print "The joined node is dead"
 
-            wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "", joinID)
+            wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")
 
 
 
@@ -112,7 +114,7 @@ def user_input():
                     response = Response.OVERLOAD
                 except:
                     response = Response.STOREFAILURE
-                print "response:" + str(response)
+                print "response:" + print_response(response) 
                 # wireObj.send_reply(key, response, len(value_to_send), value_to_send)
 
             else:
@@ -125,7 +127,7 @@ def user_input():
                     print "There is no nodes in the network"    #TODO Perhaphs store key locally if no other nodes
                     response_code = Response.NoExternalAliveNodes
                     #wireObj.send_request(Command.GET, key, 0, "", -1)
-                print "Response:" + str(response_code), "Value:" + str(value[0])
+                print "Response:" + print_response(response_code) , "Value:" + str(value[0])
         elif nb == "3":
             key = raw_input('Please enter the key>')
             value = raw_input('Please enter the value>')
@@ -138,7 +140,7 @@ def user_input():
                     response = Response.OUTOFSPACE
                 except:
                     response = Response.STOREFAILURE
-                print "response:" + str(response)
+                print "response:" + print_response(response) 
                 # wireObj.send_reply(key, response, 0, "")
 
             else:
@@ -152,7 +154,7 @@ def user_input():
                     print "There is no nodes in the network"        #TODO Perhaphs store key locally if no other nodes
                     response_code = Response.NoExternalAliveNodes
                     #wireObj.send_request(Command.PUT, key, len(value), value, -1)
-                print "Response:" + str(response_code)
+                print "Response:" + print_response(response_code) 
                 # sendAndWaitForAReplyThread = threading.Thread(target=sendAndWaitForAReply, args=(key, value))
                 # sendAndWaitForAReplyThread.start()
         elif nb == "4":
@@ -171,11 +173,11 @@ def user_input():
                     response = Response.STOREFAILURE
 
                 # wireObj.send_reply(key, response, 0, "")
-                print "response:" + str(response)
+                print "response:" + print_response(response) 
             else:
                 wireObj.send_request(Command.REMOVE, key, 0, "", -1)
                 response_code, value = wireObj.receive_reply()
-                print "Response:" + str(response_code)
+                print "Response:" + print_response(response_code) 
         elif nb == "5":
             key = raw_input('Please enter the key>')
             output = nodeCommunicationObj.search(key, hashedKeyModN)
@@ -184,6 +186,24 @@ def user_input():
             # sys.exit("Exit normally.")
             os._exit(10)
 
+
+def print_response(x):
+    if x == 0x01:
+        return "SUCCESS"
+    elif x == 0x02:
+        return "NONEXISTENTKEY"
+    elif x == 0x03:
+        return "OUTOFSPACE"
+    elif x == 0x04:
+        return "OVERLOAD"
+    elif x == 0x05:
+        return "STOREFAILURE"
+    elif x == 0x06:
+        return "UNRECOGNIZED"
+    elif x == 0x21:
+        return "RPNOREPLY"
+    elif x == 0x22:
+        return "NoExternalAliveNodes"
 
 if __name__ == "__main__":
     opts, args = getopt.getopt(sys.argv, "", [""])
@@ -201,4 +221,5 @@ if __name__ == "__main__":
     userInputThread = threading.Thread(target=user_input)
     userInputThread.start()
 
-    nodeCommunicationObj.join(hashedKeyModN) # call joining procedure
+    nodeCommunicationObj.join(int(hashedKeyModN)) # call joining procedure
+

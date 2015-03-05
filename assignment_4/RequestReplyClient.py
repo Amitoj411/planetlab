@@ -85,7 +85,7 @@ class RequestReplyClient:
                 resend_counter += 1
                 timeout *= 2
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
-                print "socket.error: " + str(socket.error)
+                # print "socket.error: " + str(socket.error)
                 print "Timeout: " + str(timeout) +"ms. Sending again, trail: " + str(resend_counter)
 
         return -1
