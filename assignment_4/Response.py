@@ -6,7 +6,8 @@ OUTOFSPACE = 0x03
 OVERLOAD = 0x04
 STOREFAILURE = 0x05
 UNRECOGNIZED = 0x06
-RPNOREPLY = 0x21
+RPNOREPLY = 0x21    #This is a TimeOut Event
+NoExternalAliveNodes = 0x22
 
 # RESPONSE = {
 #     "SUCCESS" : 0x01 ,  # store data indexed by strings.

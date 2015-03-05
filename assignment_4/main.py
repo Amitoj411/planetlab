@@ -116,8 +116,15 @@ def user_input():
                 # wireObj.send_reply(key, response, len(value_to_send), value_to_send)
 
             else:
-                wireObj.send_request(Command.GET, key, 0, "")
-                response_code, value = wireObj.receive_reply()
+                successor = nodeCommunicationObj.search(key, hashedKeyModN)
+                if successor != -2:
+                    print "The Key Doesn't exist on the network, will return current node"
+                    wireObj.send_request(Command.GET, key, 0, "", successor)
+                    response_code, value = wireObj.receive_reply()
+                else:
+                    print "There is no nodes in the network"    #TODO Perhaphs store key locally if no other nodes
+                    response_code = Response.NoExternalAliveNodes
+                    #wireObj.send_request(Command.GET, key, 0, "", -1)
                 print "Response:" + str(response_code), "Value:" + str(value[0])
         elif nb == "3":
             key = raw_input('Please enter the key>')
@@ -135,8 +142,16 @@ def user_input():
                 # wireObj.send_reply(key, response, 0, "")
 
             else:
-                wireObj.send_request(Command.PUT, key, len(value), value)
-                response_code, value = wireObj.receive_reply()
+                successor = nodeCommunicationObj.search(key, hashedKeyModN)
+                if successor != -2:
+                    print "The Key Doesn't exist on the network, will return current node"
+                    wireObj.send_request(Command.PUT, key, len(value), value, successor)
+                    response_code, value = wireObj.receive_reply()
+
+                else:
+                    print "There is no nodes in the network"        #TODO Perhaphs store key locally if no other nodes
+                    response_code = Response.NoExternalAliveNodes
+                    #wireObj.send_request(Command.PUT, key, len(value), value, -1)
                 print "Response:" + str(response_code)
                 # sendAndWaitForAReplyThread = threading.Thread(target=sendAndWaitForAReply, args=(key, value))
                 # sendAndWaitForAReplyThread.start()
@@ -158,12 +173,12 @@ def user_input():
                 # wireObj.send_reply(key, response, 0, "")
                 print "response:" + str(response)
             else:
-                wireObj.send_request(Command.REMOVE, key, 0, "")
+                wireObj.send_request(Command.REMOVE, key, 0, "", -1)
                 response_code, value = wireObj.receive_reply()
                 print "Response:" + str(response_code)
         elif nb == "5":
             key = raw_input('Please enter the key>')
-            output = nodeCommunicationObj.search(key)
+            output = nodeCommunicationObj.search(key, hashedKeyModN)
             print "The Result is: " + str(output)
         else:
             # sys.exit("Exit normally.")
