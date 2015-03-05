@@ -36,31 +36,43 @@ class Wire:
     # Client functions:
     RequestReplyClient_obj = None
 
+    def print_command(self, x):
+        if x == 0x01:
+            return "PUT"
+        elif x == 0x02:
+            return "GET"
+        elif x == 0x03:
+            return "REMOVE"
+        elif x == 0x04:
+            return "SHUTDOWN"
+        elif x == 0x20:
+            return "JOIN"
+
     def send_request(self, command, key, value_length, value, node_overwrite):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
-        if command == Command.PUT:
+        if command == Command.PUT or command == Command.JOIN:
             fmt += str(value_length) + 's'
             msg = struct.pack(fmt, command, key, value_length, value)                #Packing value as an Int
         else:  # other commands
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        print "command: " + str(command) \
+        print "command: " + self.print_command(command) \
               + ", key: " + key \
               + ", value_length: " \
               + str(value_length)  \
               + ", value: " + str(value)
 
-        print "msg: " + msg
+        #print "msg: " + msg
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
             ip_port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
-            print "node_overwrite DISABLED and ip_port is: " + str(ip_port) + "  Message: " + str(msg)
+            #print "node_overwrite DISABLED and ip_port is: " + str(ip_port) + "  Message: " + str(msg)
         else:
             ip_port = self.lookUp(node_overwrite)  # Will be changed later to return the IP
-            print "node_overwrite ENABLED " + str(node_overwrite) + "  ip_port: " + str(ip_port) + "  Message: " + str(msg)
+            # print "node_overwrite ENABLED " + str(node_overwrite) + ", ip_port: " + str(ip_port) + ", Message: " + str(msg)
 
         local_ip_port = self.lookUp(self.hashedKeyModN)
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
@@ -79,13 +91,12 @@ class Wire:
             value = -1
         else:
             try:
-                # request_reply_response = binascii.unhexlify(request_reply_response)
                 request_reply_response = request_reply_response
                 response_code, value_length = struct.unpack(self.fmtReply, request_reply_response[0:3])
                 if response_code == 1 and value_length != 0:  # operation is successful and there is a value.
                     value_fmt = str(value_length) + 's'
                     value = struct.unpack(value_fmt, request_reply_response[3:])
-                else:  # Other commands
+                else:  # Other responses
                     value = ("",)
 
             except:
@@ -102,10 +113,11 @@ class Wire:
 
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
-            if command == 1: #PUT
+            # print "recieve_request command:" + str(command)
+            if command == 0x01 or command == 0x20: #PUT or join
                 value_fmt = str(value_length) + 's'
-                print "command: " + str(command) + ", key: " + key + ", value_length: " + str(value_length)
-                print "msg: " + msg
+                print "command: " + self.print_command(command) + ", key: " + key + ", value_length: " + str(value_length)
+                #print "msg: " + msg
                 value = struct.unpack(value_fmt, msg[35:])
             else:  # Other commands
                 value = ("",)
@@ -117,7 +129,7 @@ class Wire:
         value = value[0]
         return command, key, value_length, value , addr
 
-    def send_reply(self, sender_addr, key, response_code, value_length, value, node_id):
+    def send_reply(self, sender_addr, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         print "send_reply: " + str(sender_addr) + ", response_code: " + str(response_code) + ", value: "+ value + ", value length: " + str(value_length)
         fmt = self.fmtReply

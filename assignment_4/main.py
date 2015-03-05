@@ -14,11 +14,22 @@ import subprocess as sub
 # def sendAndWaitForAReply(key, value):
     # wireObj.send(Command.PUT, key, len(value), value)  # @Abraham & @Amitoj
 
+def print_command(x):
+    if x == 0x01:
+        return "PUT"
+    elif x == 0x02:
+        return "GET"
+    elif x == 0x03:
+        return "REMOVE"
+    elif x == 0x04:
+        return "SHUTDOWN"
+    elif x == 0x20:
+        return "JOIN"
 
 def receive_request():
     while True:
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
-        print "Receive thread reporting. Receiving from:" + str(sender_addr)
+        print "Receive thread reporting. Receiving from:" + str(sender_addr) + ", Command Recieved:" + print_command(command) + ", Value: " + value + ", Value Length: " + str(value_length)
         # print "Receiving:" + command
         # @Michael: Please handle the msg
         # You might receive get or put msgs from other nodes.
@@ -66,16 +77,19 @@ def receive_request():
             os._exit(10)
 
         elif command == Command.JOIN:
-            join_id= value
-            for key in kvTable:
+
+            join_id = int(value)
+            print "Recieved Join ID:" + str(join_id)
+            for key in kvTable.hashTable:
                 if hash(key) % int(N) == join_id: #ensure joinID is the ID of the predecessor
-                    key_value = kvTable(key)
-                    wireObj.send_request(Command.PUT, key, len(key_value), key_value)
+                    print "Match Key:" + key
+                    key_value = kvTable.hashTable[key]
+                    wireObj.send_request(Command.PUT, key, len(key_value), key_value, -1)
                     response_code, value = wireObj.receive_reply()
                     if response_code == Response.SUCCESS:
                         kvTable.remove(key)
                     else:
-                        print "The joined node is dead"
+                        print "The joined node is dead" + ", respoonse: " + print_response(response_code)
 
             wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")
 

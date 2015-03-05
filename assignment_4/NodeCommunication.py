@@ -115,11 +115,11 @@ class NodeCommunication:
     def join(self, joinID):
         successor = self.successor(joinID)  # search by node id
         if successor != joinID:  # else its oly me in the network
-            print "successor found: " + successor
+            print "successor found: " + str(successor)
             wire_obj = wire.Wire(self.numberOfNodes, successor)
-            wire_obj.send_request(Command.JOIN, "", len(joinID), joinID, successor)
+            wire_obj.send_request(Command.JOIN, "anyKey", len(str(joinID)), str(joinID), successor)
             response_code, value = wire_obj.receive_reply()
-            print "Response: " + print_response(response_code) 
+            print "Response: " + self.print_response(response_code)
 
         print "Join synchronization is finished"
 
