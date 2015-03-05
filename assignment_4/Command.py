@@ -4,6 +4,7 @@ PUT = 0x01
 GET = 0x02
 REMOVE = 0x03
 SHUTDOWN = 0x04
+JOIN = 0x20
 
 #  1. Command is 1 byte long. It can be:
 #     0x01. This is a put operation.

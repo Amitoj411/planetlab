@@ -1,6 +1,6 @@
 __author__ = 'Owner'
-
 import wire
+
 import Command
 import Response
 
@@ -39,3 +39,8 @@ class NodeCommunication:
 
         return None
 
+    def join(self, joinID):
+        successor = self.search(joinID, "id")
+        wireObj = wire.Wire(self.numberOfNodes, successor)
+        wireObj.send_request(Command.JOIN, "", len(joinID), joinID, successor)
+        response_code, value = wireObj.receive_reply()

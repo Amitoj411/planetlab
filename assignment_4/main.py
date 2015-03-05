@@ -65,6 +65,22 @@ def receive_request():
         elif command == Command.SHUTDOWN:
             os._exit(10)
 
+        elif command == Command.JOIN:
+            joinID = value
+            for key in kvTable:
+                if hash(key)%int(N) == joinID: #ensure joinID is the ID of the predecessor
+                    keyvalue = kvTable(key)
+                    wireObj.send_request(Command.PUT, key, len(keyvalue), keyvalue)
+                    response_code, value = wireObj.receive_reply()
+                    if response_code == Response.SUCCESS:
+                        kvTable.remove(key)
+
+            wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "", joinID)
+
+
+
+
+
         else:
             response = Response.UNRECOGNIZED
             wireObj.send_reply(sender_addr, key, response, 0, "")
@@ -169,3 +185,5 @@ if __name__ == "__main__":
 
     userInputThread = threading.Thread(target=user_input)
     userInputThread.start()
+
+    nodeCommunicationObj.join(hashedKeyModN) # call joining procedure
