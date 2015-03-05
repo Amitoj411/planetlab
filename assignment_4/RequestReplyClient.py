@@ -42,9 +42,14 @@ class RequestReplyClient:
             struct.pack("H", int(self.local_port))
         ).upper()
 
+        # ip = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
+        # port = struct.pack("H", int(self.local_port))
         local_time = binascii.hexlify(
             struct.pack("H", int(time.strftime("%M")))
         ).upper()
+        # local_time = struct.pack("H", int(time.strftime("%M")))
+
+
         self.unique_request_id = ip + port + local_time
 
         # self.message = binascii.hexlify(

@@ -46,6 +46,14 @@ class Wire:
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, value)                  #Packing Key as an Int
 
+        print "command: " + str(command) \
+              + ", key: " + key \
+              + ", value_length: " \
+              + str(value_length)  \
+              + ", value: " + str(value)
+
+        print "msg: " + msg
+
         #  Get the IP:Port from the key
         ip_port = self.lookUp(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
         local_ip_port = self.lookUp(self.hashedKeyModN)
@@ -90,6 +98,8 @@ class Wire:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
             if command == 1: #PUT
                 value_fmt = str(value_length) + 's'
+                print "command: " + str(command) + ", key: " + key + ", value_length: " + str(value_length)
+                print "msg: " + msg
                 value = struct.unpack(value_fmt, msg[35:])
             else:  # Other commands
                 value = ("",)
@@ -108,6 +118,12 @@ class Wire:
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
 
+<<<<<<< Updated upstream
         self.RequestReplyServer_obj.send(sender_addr[0], 44444, binascii.hexlify(msg))
+=======
+        # self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
+        self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
+
+>>>>>>> Stashed changes
 
 

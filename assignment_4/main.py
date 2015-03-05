@@ -46,7 +46,7 @@ def receive_request():
                 response = Response.OVERLOAD
             except:
                 response = Response.STOREFAILURE
-
+            print "value_to_send" + value_to_send
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
