@@ -42,7 +42,7 @@ class Wire:
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        print Colors.Colors.OKGREEN + "send_request$ command: " + Command.print_command(command) \
+        print Colors.Colors.OKGREEN + "send_request$ command:" + Command.print_command(command) \
             + ", key: " + key \
             + ", value_length: " \
             + str(value_length)  \
@@ -78,7 +78,7 @@ class Wire:
             # print Colors.Colors.OKGREEN  +"receive_request command:" + str(command)
             if command == 0x01 or command == 0x20: #PUT or JOIN
                 value_fmt = str(value_length) + 's'
-                # print Colors.Colors.OKGREEN  +"command: " + self.print_command(command) + \
+                # print Colors.Colors.OKGREEN  +"command:" + self.print_command(command) + \
                 #  ", key: " + key + ", value_length: " + str(value_length)
                 # print Colors.Colors.OKGREEN  +"msg: " + msg
                 value = struct.unpack(value_fmt, msg[35:])
@@ -87,7 +87,7 @@ class Wire:
 
             print Colors.Colors.OKGREEN + "receive_request$ "\
                 + str(addr) \
-                + ", Command Relieved:" \
+                + ", Command Received:" \
                 + Command.print_command(command) \
                 + ", Key:" \
                 + key \
@@ -137,8 +137,8 @@ class Wire:
             except:
                 raise
 
-        print Colors.Colors.OKGREEN + "receive_reply$ response:" + Response.print_response(response_code) + ", value:" \
-            + str(value) \
+        print Colors.Colors.OKGREEN + "receive_reply$ response:" + Response.print_response(response_code) + \
+            ", value:" + str(value) \
             + Colors.Colors.ENDC
         return response_code, value
 

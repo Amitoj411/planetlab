@@ -9,6 +9,7 @@ UNRECOGNIZED = 0x06
 RPNOREPLY = 0x21    #This is a TimeOut Event
 NoExternalAliveNodes = 0x22
 
+
 def print_response(x):
     if x == 0x01:
         return "SUCCESS"

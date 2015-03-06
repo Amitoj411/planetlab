@@ -11,38 +11,42 @@ class NodeCommunication:
     def __init__(self, numberOfNodes):
         self.numberOfNodes = numberOfNodes
 
-    #  Given a key, the nodeID of the first alive node is returned.
+    # Given a key, the local nodeID of the first alive node is returned
+    # Unless if it is a key the belongs to the local nodeID then return the local node id
     # The returned nodeID may or may not contain the specified key.
     # Use the returned nodeID to call subsequent operations.
     # Return: 'cursor' if you find a successor other than yourself
     # Return: '-2' if the local node is the successor or if you are only alive node in the network
     def search(self, key, localNode):
-        hashedNodeID = hash(key) % self.numberOfNodes
+        cursor = hash(key) % self.numberOfNodes
 
         # Key Locally Stored - Preliminary check to see if you are the node the key should be stored on.
-        if hashedNodeID == int(localNode):
-            print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ The Key should be stored locally" + Colors.Colors.ENDC
-            return localNode
+        if cursor == int(localNode):
+            print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ The Key should be stored locally" \
+                  + Colors.Colors.ENDC + "\n"
+            return int(localNode)
 
-        cursor = hashedNodeID           # Cursor goes through the range of nodes in our system
+        # cursor = hashedNodeID           # Cursor goes through the range of nodes in our system
         while True:
             try:
                 # Added to exclude yourself from being searched
                 # If cursor is equal to localNode then return -2
+                # if cursor == int(localNode):
+                #     if cursor != 0:
+                #         cursor -= 1
+                #         if cursor == hashedNodeID:
+                #             return -2
+                #     else:
+                #         cursor = self.numberOfNodes - 1
                 if cursor == int(localNode):
-                    if cursor != 0:
-                        cursor -= 1
-                        if cursor == hashedNodeID:
-                            return -2
-                    else:
-                        cursor = self.numberOfNodes - 1
+                    return int(localNode)
 
                 # Try to contact the cursor
                 wireObj = wire.Wire(self.numberOfNodes, cursor)
-                wireObj.send_request(Command.GET, key, 0, "", cursor)
+                wireObj.send_request(Command.PING, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply()
                 print Colors.Colors.OKBLUE +  "AvailabilityAndConsistency$ Searching for node " + str(cursor) \
-                    + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC
+                    + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
 
                 # If receive no reply from the cursor node, point cursor to the next node
                 if response_code == Response.RPNOREPLY:  # counter clock wise
@@ -52,8 +56,8 @@ class NodeCommunication:
                         cursor = (cursor - 1) % self.numberOfNodes
 
                     # Stop if you have looped back around to the original cursor
-                    if cursor == hashedNodeID:
-                        break
+                    # if cursor == hashedNodeID:
+                    #     break
 
                 # If we don't receive a timeout return the cursor i.e. it is a alive,
                 # then return the cursor.
@@ -63,6 +67,7 @@ class NodeCommunication:
                 raise
         return -2
 
+    # Given a node_id return the first alive successor
     def successor(self, node_id):
         cursor = node_id
         while True:
@@ -79,8 +84,8 @@ class NodeCommunication:
 
                 # Echo-reply
                 wire_obj = wire.Wire(self.numberOfNodes, cursor)
-                print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Searching for Node:  " + str(cursor) + Colors.Colors.ENDC
-                wire_obj.send_request(Command.GET, "Anykey", 0, "", cursor)
+                print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Searching for Node:  " + str(cursor) + Colors.Colors.ENDC + "\n"
+                wire_obj.send_request(Command.PING, "Anykey", 0, "", cursor)
                 response_code, value = wire_obj.receive_reply()
                 # print "Response: " + Response.print_response(response_code)
 
@@ -95,18 +100,20 @@ class NodeCommunication:
 
         return result
 
+    # Join procedure:
+    # 1- Get the successor
+    # 2- Send JOIN msg to it: to check if it has any key that natches the joined node and PUT it back and then REMOVE it
     def join(self, joinID):
         successor = self.successor(joinID)  # search by node id
         if successor != joinID:  # else its oly me in the network
             print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ successor found: " \
-                + str(successor) + Colors.Colors.ENDC
+                + str(successor) + Colors.Colors.ENDC + "\n"
             wire_obj = wire.Wire(self.numberOfNodes, successor)
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(joinID)), str(joinID), successor)
             response_code, value = wire_obj.receive_reply()
-            # print "Response: " + self.print_response(response_code)
 
         print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Join synchronization is finished"\
-            + Colors.Colors.ENDC
+            + Colors.Colors.ENDC + "\n"
 
 
 
