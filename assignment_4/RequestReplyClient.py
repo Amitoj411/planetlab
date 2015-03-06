@@ -5,7 +5,7 @@ import time
 # import binascii
 import struct
 import udpSendRecieve
-from array import array
+# from array import array
 import Colors
 import random
 
@@ -70,12 +70,12 @@ class RequestReplyClient:
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
 
 
-    def receive(self):
+    def receive(self, port_number):
         resend_counter = 1
         timeout = self.timeout
         while resend_counter <= 3:
             try:
-                data, addr = self.udp_obj.receive(44444, timeout)
+                data, addr = self.udp_obj.receive(port_number, timeout)
                 received_header = data[0:16]
                 payload = data[16:]
                 # print "data:" + data

@@ -7,9 +7,11 @@ import Colors
 
 class NodeCommunication:
     numberOfNodes = 0
+    mode = ""
 
-    def __init__(self, numberOfNodes):
+    def __init__(self, numberOfNodes, mode):
         self.numberOfNodes = numberOfNodes
+        self.mode = mode
 
     # Given a key, the local nodeID of the first alive node is returned
     # Unless if it is a key the belongs to the local nodeID then return the local node id
@@ -42,9 +44,9 @@ class NodeCommunication:
                     return int(localNode)
 
                 # Try to contact the cursor
-                wireObj = wire.Wire(self.numberOfNodes, cursor)
+                wireObj = wire.Wire(self.numberOfNodes, cursor,self.mode)
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
-                response_code, value = wireObj.receive_reply()
+                response_code, value = wireObj.receive_reply("127.0.0.1:44444") # not replying to the TA
                 print Colors.Colors.OKBLUE +  "AvailabilityAndConsistency$ Searching for node " + str(cursor) \
                     + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
 
@@ -97,10 +99,10 @@ class NodeCommunication:
                     break
 
                 # Echo-reply
-                wire_obj = wire.Wire(self.numberOfNodes, cursor)
+                wire_obj = wire.Wire(self.numberOfNodes, cursor, self.mode)
                 print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Searching for Node:  " + str(cursor) + Colors.Colors.ENDC + "\n"
                 wire_obj.send_request(Command.PING, "Anykey", 0, "", cursor)
-                response_code, value = wire_obj.receive_reply()
+                response_code, value = wire_obj.receive_reply("127.0.0.1:44444") # Not sending back to the TA
                 # print "Response: " + Response.print_response(response_code)
 
                 # If time-out continue, else stop
@@ -122,9 +124,9 @@ class NodeCommunication:
         if successor != joinID and successor != -2:  # else its only me in the network
             print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ successor found: " \
                 + str(successor) + Colors.Colors.ENDC + "\n"
-            wire_obj = wire.Wire(self.numberOfNodes, successor)
+            wire_obj = wire.Wire(self.numberOfNodes, successor, self.mode)
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(joinID)), str(joinID), successor)
-            response_code, value = wire_obj.receive_reply()
+            response_code, value = wire_obj.receive_reply("127.0.0.1:44444") # Not replying to the TA
         elif successor == -2:
             print "stopped after three searchs"
 

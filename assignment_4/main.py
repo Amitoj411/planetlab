@@ -10,6 +10,7 @@ import os
 import AvailabilityAndConsistency
 import time
 import NodeList
+import Mode
 
 
 # def sendAndWaitForAReply(key, value):
@@ -87,7 +88,7 @@ def receive_request():
 
                     key_value = kvTable.hashTable[key]
                     wireObj.send_request(Command.PUT, key, len(key_value), key_value, join_id)
-                    response_code, value = wireObj.receive_reply()
+                    response_code, value = wireObj.receive_reply(sender_addr)
                     if response_code == Response.SUCCESS:
                         keys_to_be_deleted.append(key)
                     else:
@@ -169,7 +170,7 @@ def user_input():
                     # print "The Key Doesn't exist on the network, will return current node"
                     if successor != int(hashedKeyModN):  # not the local node
                         wireObj.send_request(Command.GET, key, 0, "", successor)
-                        response_code, value = wireObj.receive_reply()
+                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                         if response_code == Response.SUCCESS: print "Value:" + str(value[0])
                     else:  # the local node
                         response_code, value = try_to_get(key)
@@ -193,7 +194,7 @@ def user_input():
                     print "$main: Next alive:" + str(successor)
                     if successor != int(hashedKeyModN):  # not the local node
                         wireObj.send_request(Command.PUT, key, len(value), value, successor)
-                        response_code, value = wireObj.receive_reply()
+                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                     else:  # local
                         response_code = try_to_put(key, value)
                 else:  # There is no nodes in the network"
@@ -212,7 +213,7 @@ def user_input():
                     print "$main: Next alive:" + str(successor)
                     if successor != int(hashedKeyModN):  # not the local node
                         wireObj.send_request(Command.REMOVE, key, 0, "", successor)
-                        response_code, value = wireObj.receive_reply()
+                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                     else:
                         response_code = try_to_remove(key)
                 else:
@@ -235,7 +236,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply()
+                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                 print "Main$ response:" + Response.print_response(response_code)
             else:
                 node_id = raw_input('Main$ Please enter the node_id>')
@@ -244,7 +245,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply()
+                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                 print "Main$ response:" + Response.print_response(response_code)
         elif nb == "7":   # Ping
             option = raw_input('Main$ Ping by key (y/n)?>')
@@ -256,7 +257,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply()
+                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                 print "Main$ response:" + Response.print_response(response_code)
                 if response_code == Response.SUCCESS: print "Reply:" + str(value[0])
             else:
@@ -266,7 +267,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply()
+                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                 print "Main$ response:" + Response.print_response(response_code)
                 if response_code == Response.SUCCESS: print "Reply:" + str(value[0])
         else:
@@ -279,16 +280,18 @@ def user_input():
 if __name__ == "__main__":
     opts, args = getopt.getopt(sys.argv, "", [""])
     N = args[1]
-
+    mode = ""
     if len(args) > 2:
         hashedKeyModN = args[2]
+        mode = Mode.local
     else:
-        hashedKeyModN = NodeList.get_node_id()
+        hashedKeyModN = NodeList.look_up_ip_address()
+        mode = Mode.planetLab
 
     kvTable = ring.Ring()
-    wireObj = wire.Wire(int(N), hashedKeyModN)
+    wireObj = wire.Wire(int(N), hashedKeyModN, mode)
 
-    nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N))
+    nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N), mode)
 
     receiveThread = threading.Thread(target=receive_request)
     receiveThread.start()

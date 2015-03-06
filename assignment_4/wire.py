@@ -4,10 +4,10 @@ import RequestReplyServer
 import struct
 import Command
 import Response
-import binascii
+# import binascii
 import Colors
 import NodeList
-
+import Mode
 
 class Wire:
     description = "This is implemented on top of the request/reply protocol you developed for A1 " \
@@ -17,10 +17,12 @@ class Wire:
     hashedKeyModN = -1
     fmtRequest = "<B32sH"  # Format of Data to be cont. later in the function
     fmtReply = "<BH"
+    mode=""
 
-    def __init__(self, numberOfNodes, hashedKeyModN):
+    def __init__(self, numberOfNodes, hashedKeyModN, mode):
         self.numberOfNodes = numberOfNodes
         self.hashedKeyModN = hashedKeyModN
+        self.mode =mode
 
     def send_request(self, command, key, value_length, value, node_overwrite):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
@@ -42,15 +44,15 @@ class Wire:
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
-            ip_port = NodeList.look_up(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
+            ip_port = NodeList.look_up_node_id(hash(key) % self.numberOfNodes, self.mode)
             # print Colors.Colors.OKGREEN  +"node_overwrite DISABLED and ip_port is: " + str(ip_port) + \
             # "  Message: " + str(msg)
-        else:
-            ip_port = NodeList.look_up(node_overwrite)  # Will be changed later to return the IP
+        else:  # Get it by node id
+            ip_port = NodeList.look_up_node_id(node_overwrite, self.mode)
             # print Colors.Colors.OKGREEN  +"node_overwrite ENABLED " + str(node_overwrite) + \
             # ", ip_port: " + str(ip_port) + ", Message: " + str(msg)
 
-        local_ip_port = NodeList.look_up(self.hashedKeyModN)
+        local_ip_port = NodeList.look_up_node_id(self.hashedKeyModN, self.mode)
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
                                                                             ip_port.split(':')[1],
                                                                             msg,
@@ -60,7 +62,7 @@ class Wire:
         self.RequestReplyClient_obj.send()
 
     def receive_request(self, hashedKeyMod):
-        ip_port = NodeList.look_up(hashedKeyMod)
+        ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
         header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1])
 
         try:
@@ -100,17 +102,24 @@ class Wire:
             "send_reply$ " + str(sender_addr) + \
             ", response_code: " + str(response_code) +\
             ", value: " + value + \
-            ", value length: " + \
-            str(value_length) + \
-            Colors.Colors.ENDC
+            ", value length: " + str(value_length) + \
+            ", mode: " + Mode.print_mode(self.mode) + \
+            Colors.Colors.ENDC + \
+            "\n"
 
         fmt = self.fmtReply
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
-        self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
+        if self.mode == Mode.local:
+            self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
+        else:
+            self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
 
-    def receive_reply(self):
-        request_reply_response = self.RequestReplyClient_obj.receive()
+    def receive_reply(self, sender_addr):
+        if self.mode == Mode.local:
+            request_reply_response = self.RequestReplyClient_obj.receive(44444)
+        else:
+            request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1])
 
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY
@@ -128,8 +137,10 @@ class Wire:
                 raise
 
         print Colors.Colors.OKGREEN + "receive_reply$ response:" + Response.print_response(response_code) + \
-            ", value:" + str(value) \
-            + Colors.Colors.ENDC
+            ", value:" + str(value) + \
+            ", mode: " + Mode.print_mode(self.mode) + \
+            Colors.Colors.ENDC + \
+            "\n"
         return response_code, value
 
     # Server
