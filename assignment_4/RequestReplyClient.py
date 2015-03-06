@@ -5,7 +5,7 @@ import time
 # import binascii
 import struct
 import udpSendRecieve
-# from array import array
+import array
 import Colors
 import random
 
@@ -14,7 +14,7 @@ class RequestReplyClient:
     udp_obj = udpSendRecieve.UDPNetwork()
     timeout = 2  # 100 ms by default unless changed by constructor
     # For retransmission
-    unique_request_id = "" # last id was send. Used to match the most recent received one
+    unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
     # unique_request_id = []# last id was send. Used to match the most recent received one
     udp_ip = ""
     udp_port = ""
@@ -30,7 +30,7 @@ class RequestReplyClient:
 
     def send(self):
         # Prepare the header as A1
-        self.unique_request_id = bytearray(16)
+        # self.unique_request_id = bytearray(16)
         self.unique_request_id = socket.inet_aton(socket.gethostbyname(socket.gethostname())) +  \
                                  struct.pack("QHH", int(time.strftime("%M")), int(self.local_port), random.randint(0,10))
         # print  Colors.Colors.WARNING + "RequestReplyClient$ len(unique_request_id) : " + \

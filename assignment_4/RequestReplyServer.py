@@ -1,9 +1,11 @@
 __author__ = 'Owner'
 # To-Do do whatever we did in assignment 1
-import socket
-import time
-import binascii
-import struct
+# import socket
+# import time
+# import binascii
+# import struct
+import array
+
 import udpSendRecieve
 
 
@@ -11,7 +13,7 @@ class RequestReplyServer:
     udp_obj = udpSendRecieve.UDPNetwork()
     timeout = .1  # 100 ms by default unless changed by constructor
     # For retransmission
-    unique_request_id  = bytearray(16) # last id was send. Used to match the most recent received one
+    unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
     # udp_ip = ""
     # udp_port = ""
     # message = ""

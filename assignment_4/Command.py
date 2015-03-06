@@ -6,6 +6,7 @@ REMOVE = 0x03
 SHUTDOWN = 0x04
 JOIN = 0x20
 PING = 0x21
+JOIN_FIN = 0x22
 
 
 def print_command(x):
@@ -20,6 +21,8 @@ def print_command(x):
     elif x == 0x20:
         return "JOIN"
     elif x == 0x21:
+        return "PING"
+    elif x == 0x22:
         return "PING"
 
 #  1. Command is 1 byte long. It can be:

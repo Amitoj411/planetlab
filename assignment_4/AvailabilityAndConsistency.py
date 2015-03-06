@@ -61,8 +61,10 @@ class NodeCommunication:
                     if int(localNode) > cursor:
                         if int(localNode) - cursor > 3:
                             return -2
+                            break
                     elif (self.numberOfNodes - cursor) + int(localNode) > 3:
                             return -2
+                            break
                     # Stop if you have looped back around to the original cursor
                     # if cursor == hashedNodeID:
                     #     break
@@ -80,6 +82,8 @@ class NodeCommunication:
         cursor = node_id
         while True:
             try:
+                print "node_id=" + str(node_id)
+                print "cursor=" + str(cursor)
                 # decrement
                 if cursor - 1 < 0:
                     cursor = self.numberOfNodes-1
@@ -90,8 +94,10 @@ class NodeCommunication:
                 if node_id > cursor:
                     if node_id - cursor > 3:
                         result = -2
+                        break
                 elif (self.numberOfNodes - cursor) + node_id > 3:
                         result = -2
+                        break
 
                 # If Im the only node in the network then break and return the current node_id
                 if cursor == node_id:
@@ -102,7 +108,7 @@ class NodeCommunication:
                 wire_obj = wire.Wire(self.numberOfNodes, cursor, self.mode)
                 print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Searching for Node:  " + str(cursor) + Colors.Colors.ENDC + "\n"
                 wire_obj.send_request(Command.PING, "Anykey", 0, "", cursor)
-                response_code, value = wire_obj.receive_reply("127.0.0.1:44444") # Not sending back to the TA
+                response_code, value = wire_obj.receive_reply("127.0.0.1:44444")  # Not sending back to the TA
                 # print "Response: " + Response.print_response(response_code)
 
                 # If time-out continue, else stop

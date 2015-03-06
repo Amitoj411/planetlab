@@ -35,17 +35,17 @@ def look_up_ip_address():  # (i.e.) given the local IP return the ip:port
 
     for line in nodes:
         _arr = line.split(',')
-        nodeID = int(_arr[0].strip())
+        node_id = int(_arr[0].strip())
         _arr = _arr[1].split(':')
-        if ip_address == int(_arr[1].strip()):
-            return nodeID
+        if ip_address == _arr[0].strip():
+            return node_id
 
     return -1
 
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # s.connect(('google.com', 0))
+    s.connect(('google.com', 0))
     result = s.getsockname()[0]
     s.close()
     return result

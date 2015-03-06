@@ -74,7 +74,6 @@ def receive_request():
             value = "Alive!"
             wireObj.send_reply(sender_addr, key, response, len(value), value)
 
-
         elif command == Command.JOIN:
             join_id = int(value)
             wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")  # For th join
