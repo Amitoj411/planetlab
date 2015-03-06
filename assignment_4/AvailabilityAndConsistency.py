@@ -46,7 +46,7 @@ class NodeCommunication:
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply()
                 print Colors.Colors.OKBLUE +  "AvailabilityAndConsistency$ Searching for node " + str(cursor) \
-                    + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
+              1      + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
 
                 # If receive no reply from the cursor node, point cursor to the next node
                 if response_code == Response.RPNOREPLY:  # counter clock wise
@@ -55,6 +55,12 @@ class NodeCommunication:
                     else:
                         cursor = (cursor - 1) % self.numberOfNodes
 
+                    # stop after 3 nodes apart distance
+                    if int(localNode) > cursor:
+                        if int(localNode) - cursor > 3:
+                            return -2
+                    elif (self.numberOfNodes - cursor) + int(localNode) > 3:
+                            return -2
                     # Stop if you have looped back around to the original cursor
                     # if cursor == hashedNodeID:
                     #     break
@@ -72,10 +78,18 @@ class NodeCommunication:
         cursor = node_id
         while True:
             try:
+                # decrement
                 if cursor - 1 < 0:
                     cursor = self.numberOfNodes-1
                 else:
                     cursor = (cursor - 1) % self.numberOfNodes
+
+                # stop after 3 nodes apart distance
+                if node_id > cursor:
+                    if node_id - cursor > 3:
+                        result = -2
+                elif (self.numberOfNodes - cursor) + node_id > 3:
+                        result = -2
 
                 # If Im the only node in the network then break and return the current node_id
                 if cursor == node_id:
@@ -105,12 +119,14 @@ class NodeCommunication:
     # 2- Send JOIN msg to it: to check if it has any key that natches the joined node and PUT it back and then REMOVE it
     def join(self, joinID):
         successor = self.successor(joinID)  # search by node id
-        if successor != joinID:  # else its oly me in the network
+        if successor != joinID and successor != -2:  # else its only me in the network
             print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ successor found: " \
                 + str(successor) + Colors.Colors.ENDC + "\n"
             wire_obj = wire.Wire(self.numberOfNodes, successor)
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(joinID)), str(joinID), successor)
             response_code, value = wire_obj.receive_reply()
+        elif successor == -2:
+            print "stopped after three searchs"
 
         print Colors.Colors.OKBLUE + "AvailabilityAndConsistency$ Join synchronization is finished"\
             + Colors.Colors.ENDC + "\n"
