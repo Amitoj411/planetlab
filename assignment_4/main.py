@@ -9,7 +9,7 @@ import Response
 import os
 import AvailabilityAndConsistency
 import time
-import subprocess as sub
+import NodeList
 
 
 # def sendAndWaitForAReply(key, value):
@@ -279,7 +279,11 @@ def user_input():
 if __name__ == "__main__":
     opts, args = getopt.getopt(sys.argv, "", [""])
     N = args[1]
-    hashedKeyModN = args[2]
+
+    if len(args) > 2:
+        hashedKeyModN = args[2]
+    else:
+        hashedKeyModN = NodeList.get_node_id()
 
     kvTable = ring.Ring()
     wireObj = wire.Wire(int(N), hashedKeyModN)

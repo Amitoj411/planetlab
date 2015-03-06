@@ -46,7 +46,7 @@ class NodeCommunication:
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply()
                 print Colors.Colors.OKBLUE +  "AvailabilityAndConsistency$ Searching for node " + str(cursor) \
-              1      + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
+                    + " and received response: " + Response.print_response(response_code) + Colors.Colors.ENDC + "\n"
 
                 # If receive no reply from the cursor node, point cursor to the next node
                 if response_code == Response.RPNOREPLY:  # counter clock wise

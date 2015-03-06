@@ -6,6 +6,7 @@ import Command
 import Response
 import binascii
 import Colors
+import NodeList
 
 
 class Wire:
@@ -20,17 +21,6 @@ class Wire:
     def __init__(self, numberOfNodes, hashedKeyModN):
         self.numberOfNodes = numberOfNodes
         self.hashedKeyModN = hashedKeyModN
-
-    def look_up(self, hashedKeyMod):  # (i.e.) key=apple return the port 50000
-        _file = open('node_list.txt', 'rU')
-        nodes = _file.readlines()
-
-        for line in nodes:
-            _arr = line.split(',')
-            if int(hashedKeyMod) == int(_arr[0].strip()):
-                return _arr[1].strip()
-
-        return -1
 
     def send_request(self, command, key, value_length, value, node_overwrite):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
@@ -52,15 +42,15 @@ class Wire:
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
-            ip_port = self.look_up(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
+            ip_port = NodeList.look_up(hash(key) % self.numberOfNodes)  # Will be changed later to return the IP
             # print Colors.Colors.OKGREEN  +"node_overwrite DISABLED and ip_port is: " + str(ip_port) + \
             # "  Message: " + str(msg)
         else:
-            ip_port = self.look_up(node_overwrite)  # Will be changed later to return the IP
+            ip_port = NodeList.look_up(node_overwrite)  # Will be changed later to return the IP
             # print Colors.Colors.OKGREEN  +"node_overwrite ENABLED " + str(node_overwrite) + \
             # ", ip_port: " + str(ip_port) + ", Message: " + str(msg)
 
-        local_ip_port = self.look_up(self.hashedKeyModN)
+        local_ip_port = NodeList.look_up(self.hashedKeyModN)
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
                                                                             ip_port.split(':')[1],
                                                                             msg,
@@ -70,7 +60,7 @@ class Wire:
         self.RequestReplyClient_obj.send()
 
     def receive_request(self, hashedKeyMod):
-        ip_port = self.look_up(hashedKeyMod)
+        ip_port = NodeList.look_up(hashedKeyMod)
         header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1])
 
         try:
