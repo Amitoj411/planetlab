@@ -6,6 +6,7 @@ import binascii
 import struct
 import udpSendRecieve
 from array import array
+import Colors
 
 
 class RequestReplyClient:
@@ -77,16 +78,21 @@ class RequestReplyClient:
                 #       ", payload:" + payload +\
                 #       ", length:" + str(len(received_header))
 
-                #print "Unique ID: " + str(self.unique_request_id) + " received_header: " + str(received_header) + "\n"
+                # print Colors.Colors.WARNING \
+                #     + "RequestReplyClient$: " \
+                #     + ", Unique ID: " + str(self.unique_request_id) \
+                #     + ", received_header: " + str(received_header) \
+                #     + Colors.Colors.ENDC
 
                 if self.unique_request_id == received_header:
                     return payload
             except socket.error:
                 resend_counter += 1
                 timeout *= 2
+                print Colors.Colors.WARNING + "RequestReplyClient$ Timeout: " + str(timeout) +"s. Sending again, trail: " + str(resend_counter) + Colors.Colors.ENDC
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
                 # print "socket.error: " + str(socket.error)
-                print "Timeout: " + str(timeout) +"ms. Sending again, trail: " + str(resend_counter)
+
 
         return -1
 

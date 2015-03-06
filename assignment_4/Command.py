@@ -6,6 +6,18 @@ REMOVE = 0x03
 SHUTDOWN = 0x04
 JOIN = 0x20
 
+
+def print_command(x):
+    if x == 0x01:
+        return "PUT"
+    elif x == 0x02:
+        return "GET"
+    elif x == 0x03:
+        return "REMOVE"
+    elif x == 0x04:
+        return "SHUTDOWN"
+    elif x == 0x20:
+        return "JOIN"
 #  1. Command is 1 byte long. It can be:
 #     0x01. This is a put operation.
 #     0x02. This is a get operation.

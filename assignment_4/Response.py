@@ -9,6 +9,24 @@ UNRECOGNIZED = 0x06
 RPNOREPLY = 0x21    #This is a TimeOut Event
 NoExternalAliveNodes = 0x22
 
+def print_response(x):
+    if x == 0x01:
+        return "SUCCESS"
+    elif x == 0x02:
+        return "NONEXISTENTKEY"
+    elif x == 0x03:
+        return "OUTOFSPACE"
+    elif x == 0x04:
+        return "OVERLOAD"
+    elif x == 0x05:
+        return "STOREFAILURE"
+    elif x == 0x06:
+        return "UNRECOGNIZED"
+    elif x == 0x21:
+        return "RPNOREPLY"
+    elif x == 0x22:
+        return "NoExternalAliveNodes"
+
 # RESPONSE = {
 #     "SUCCESS" : 0x01 ,  # store data indexed by strings.
 #     "NONEXISTENTKEY" : 0x02,
