@@ -1,5 +1,8 @@
 __author__ = 'Owner'
 
+import socket
+import struct
+
 fname = 'node_list3.txt'
 
 def look_up(hashedKeyMod):  # (i.e.) key=apple return the port 50000
@@ -17,7 +20,7 @@ def get_node_id():  # (i.e.) key=apple return the port 50000
     _file = open(fname, 'rU')
     nodes = _file.readlines()
 
-    ip_address = get_ip_address('eth0')
+    ip_address = get_ip_address()
 
     for line in nodes:
         _arr = line.split(',')
@@ -28,10 +31,7 @@ def get_node_id():  # (i.e.) key=apple return the port 50000
 
     return -1
 
-def get_ip_address(ifname):
+def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,
-        struct.pack('256s', ifname[:15])
-    )[20:24])
+    s.connect(('google.com', 0))
+    return s.getsockname()[0]
