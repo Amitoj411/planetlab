@@ -282,10 +282,10 @@ if __name__ == "__main__":
     mode = ""
     if len(args) > 3:
         hashedKeyModN = args[2]
-        mode = Mode.local
+        mode = Mode.testing
     elif len(args) > 2:
         hashedKeyModN = args[2]
-        mode = Mode.testing
+        mode = Mode.local
     else:
         hashedKeyModN = NodeList.look_up_ip_address()
         mode = Mode.planetLab
