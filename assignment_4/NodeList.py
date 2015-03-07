@@ -9,12 +9,10 @@ fname_local = 'node_list_local.txt'
 
 # For search, and for local mode
 def look_up_node_id(hashedKeyMod, mode):  # (i.e.) if key=apple (node 0) return the ip:port
-    if mode == Mode.local:
-        _file = open(fname_local, 'rU')
-        # print "local"
-    else:
+    if mode == Mode.planetLab:
         _file = open(fname_planet_lab, 'rU')
-        # print "planetLab"
+    else:
+        _file = open(fname_local, 'rU')
 
     nodes = _file.readlines()
 

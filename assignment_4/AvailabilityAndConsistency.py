@@ -82,8 +82,8 @@ class NodeCommunication:
         cursor = node_id
         while True:
             try:
-                print "node_id=" + str(node_id)
-                print "cursor=" + str(cursor)
+                # print "node_id=" + str(node_id)
+                # print "cursor=" + str(cursor)
                 # decrement
                 if cursor - 1 < 0:
                     cursor = self.numberOfNodes-1
