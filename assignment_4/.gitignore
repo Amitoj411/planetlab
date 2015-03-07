@@ -1,5 +1,7 @@
 #Generated files
 *.pyc
+*.xml
+*.iml
 
 #Configuration files
 .idea/workspace.xml

@@ -110,16 +110,17 @@ class Wire:
         fmt = self.fmtReply
         fmt += str(value_length) + 's'
         msg = struct.pack(fmt, response_code, value_length, value)
-        if self.mode == Mode.local:
-            self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
-        else:
+        if self.mode == Mode.testing:
             self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg)
+        else:
+            self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
 
     def receive_reply(self, sender_addr):
-        if self.mode == Mode.local:
-            request_reply_response = self.RequestReplyClient_obj.receive(44444)
-        else:
+        if self.mode == Mode.testing:
             request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1])
+        else:
+            request_reply_response = self.RequestReplyClient_obj.receive(44444)
+
 
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY

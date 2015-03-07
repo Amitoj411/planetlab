@@ -280,9 +280,12 @@ if __name__ == "__main__":
     opts, args = getopt.getopt(sys.argv, "", [""])
     N = args[1]
     mode = ""
-    if len(args) > 2:
+    if len(args) > 3:
         hashedKeyModN = args[2]
         mode = Mode.local
+    elif len(args) > 2:
+        hashedKeyModN = args[2]
+        mode = Mode.testing
     else:
         hashedKeyModN = NodeList.look_up_ip_address()
         mode = Mode.planetLab

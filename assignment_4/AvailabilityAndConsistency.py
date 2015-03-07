@@ -44,7 +44,7 @@ class NodeCommunication:
                     return int(localNode)
 
                 # Try to contact the cursor
-                wireObj = wire.Wire(self.numberOfNodes, cursor,self.mode)
+                wireObj = wire.Wire(self.numberOfNodes, cursor, self.mode)
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply("127.0.0.1:44444") # not replying to the TA
                 print Colors.Colors.OKBLUE +  "AvailabilityAndConsistency$ Searching for node " + str(cursor) \
