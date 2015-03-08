@@ -24,6 +24,8 @@ def print_command(x):
         return "PING"
     elif x == 0x22:
         return "JOIN_FIN"
+    else:
+        return "UNRECOGNIZED"
 
 #  1. Command is 1 byte long. It can be:
 #     0x01. This is a put operation.
