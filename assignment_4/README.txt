@@ -18,7 +18,7 @@ Modes:
 ## Design
 #######################
     Summary:
-        The code runs consistent hasing to load balance the keys across the network.
+        The code runs consistent hashing to load balance the keys across the network.
 
     Failure:
         The Keys on the failed node are lost. However, any new keys that are supposed to assign to it will be

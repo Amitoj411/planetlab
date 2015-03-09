@@ -75,7 +75,7 @@ class Wire:
                 # print Colors.Colors.OKGREEN  +"command:" + self.print_command(command) + \
                 #  ", key: " + key + ", value_length: " + str(value_length)
                 # print Colors.Colors.OKGREEN  +"msg: " + msg
-                value = struct.unpack(value_fmt, msg[35:])
+                value = struct.unpack(value_fmt, msg[35:35+value_length]) #Limit the max length of value to prevent buffer overflow attacks.
             else:  # Other commands
                 value = ("",)
 
