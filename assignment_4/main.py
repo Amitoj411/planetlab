@@ -27,41 +27,64 @@ def receive_request():
         # You might receive get or put msgs from other nodes.
         # Process the request locally and send them back the value in case of get
         if command == Command.PUT:
-            try:
-                kvTable.put(key, value)
-                response = Response.SUCCESS
-            except IOError:
-                response = Response.OUTOFSPACE
-            except:
-                response = Response.STOREFAILURE
+            # load balancing should be handled on the receiver side as well (Just for testing purposes
+            if mode != Mode.testing:
+                response = try_to_put(key, value)
+            else:
+                successor = nodeCommunicationObj.search(key, hashedKeyModN)
+                if successor != -2:
+                    # Print.print_ "The Key Doesn't exist on the network, will return current node"
+                    if successor != int(hashedKeyModN):  # not the local node
+                        wireObj.send_request(Command.GET, key, 0, "", successor)
+                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+                        if response_code == Response.SUCCESS: Print.print_("Value:" + str(value[0]),
+                                                                           Print.Main, hashedKeyModN)
+                    else:  # the local node
+                        response_code, value = try_to_get(key)
+                else:
+                    response_code, value = try_to_get(key)
+                    if response_code != Response.SUCCESS:
+                        response_code = Response.NoExternalAliveNodes
+                        value = ("",)
+                Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
+            # try:
+            #     kvTable.put(key, value)
+            #     response = Response.SUCCESS
+            # except IOError:
+            #     response = Response.OUTOFSPACE
+            # except:
+            #     response = Response.STOREFAILURE
 
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
-            value_to_send = ""
+            response, value_to_send = try_to_get(key)
 
-            try:
-                value_to_send = kvTable.get(key)
-                response = Response.SUCCESS
-            except KeyError:
-                response = Response.NONEXISTENTKEY
-            except MemoryError:
-                response = Response.OVERLOAD
-            except:
-                response = Response.STOREFAILURE
-            # Print.print_ "value_to_send" + value_to_send
+            # value_to_send = ""
+            #
+            # try:
+            #     value_to_send = kvTable.get(key)
+            #     response = Response.SUCCESS
+            # except KeyError:
+            #     response = Response.NONEXISTENTKEY
+            # except MemoryError:
+            #     response = Response.OVERLOAD
+            # except:
+            #     response = Response.STOREFAILURE
+
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
-            try:
-                kvTable.remove(key)
-                response = Response.SUCCESS
-            except KeyError:
-                response = Response.NONEXISTENTKEY
-            except MemoryError:
-                response = Response.OVERLOAD
-            except:
-                response = Response.STOREFAILURE
+            response = try_to_remove(key)
+            # try:
+            #     kvTable.remove(key)
+            #     response = Response.SUCCESS
+            # except KeyError:
+            #     response = Response.NONEXISTENTKEY
+            # except MemoryError:
+            #     response = Response.OVERLOAD
+            # except:
+            #     response = Response.STOREFAILURE
 
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
@@ -116,6 +139,7 @@ def try_to_get(key):
     return response, (value_to_send,)
 
 
+
 def try_to_remove(key):
     try:
         value = kvTable.remove(key)
@@ -140,23 +164,23 @@ def try_to_put(key, value):
     except IOError:
         response = Response.OUTOFSPACE
     except:
-        # response = Response.STOREFAILURE
-        raise
+        response = Response.STOREFAILURE
+        # raise
     return response
 
 
 def user_input():
     while True:
-        print "main$ [node_id:" + hashedKeyModN + "]Please Enter one of the following:" + "\n" + \
-                     "     1- Print.print_ the local Key-value store:" + "\n" + \
-                     "     2- Get a value for a key (KV[key]):" + "\n" + \
-                     "     3- Put a value for a key (KV[key]=value):" + "\n" + \
-                     "     4- Remove a key from KV):" + "\n" + \
-                     "     5- Search for a key:" + "\n" + \
-                     "     6- Shutdown" + "\n" + \
-                     "     7- Ping" + "\n" + \
-                     "     8- Turn debugging msgs ON/OFF" + "\n" + \
-                     "     9- Exit"
+        print "\nmain$ [node_id:" + hashedKeyModN + "] Please Enter one of the following:" + "\n" +\
+              "     1- Print.print_ the local Key-value store:" + "\n" + \
+              "     2- Get a value for a key (KV[key]):" + "\n" + \
+              "     3- Put a value for a key (KV[key]=value):" + "\n" + \
+              "     4- Remove a key from KV):" + "\n" + \
+              "     5- Search for a key:" + "\n" + \
+              "     6- Shutdown" + "\n" + \
+              "     7- Ping" + "\n" + \
+              "     8- Turn debugging msgs ON/OFF" + "\n" + \
+              "     9- Exit"
 
         nb = raw_input('>')
         if nb == "1":
@@ -173,17 +197,16 @@ def user_input():
                     if successor != int(hashedKeyModN):  # not the local node
                         wireObj.send_request(Command.GET, key, 0, "", successor)
                         response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
-                        if response_code == Response.SUCCESS: Print.print_("Value:" + str(value[0]) , Print.Main, hashedKeyModN) 
+                        if response_code == Response.SUCCESS: Print.print_("Value:" + str(value[0]),
+                                                                           Print.Main, hashedKeyModN)
                     else:  # the local node
                         response_code, value = try_to_get(key)
                 else:
-                    # TODO Perhaps store key locally if no other nodes: Yes
                     response_code, value = try_to_get(key)
                     if response_code != Response.SUCCESS:
                         response_code = Response.NoExternalAliveNodes
                         value = ("",)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
-
 
         elif nb == "3":  # PUT
             key = raw_input('Main$ Please enter the key>')
@@ -200,7 +223,6 @@ def user_input():
                     else:  # local
                         response_code = try_to_put(key, value)
                 else:  # There is no nodes in the network"
-                    # TODO Perhaps store key locally if no other nodes :YES
                     response_code = try_to_put(key, value)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
 
@@ -219,7 +241,6 @@ def user_input():
                     else:
                         response_code = try_to_remove(key)
                 else:
-                    # TODO Perhaps store key locally if no other nodes: Yes
                     response_code = try_to_remove(key)
                     if response_code != Response.SUCCESS:
                         response_code = Response.NoExternalAliveNodes
@@ -240,7 +261,7 @@ def user_input():
                     wireObj.send_request(Command.SHUTDOWN, key, 0, "", -1)
                     response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code),
-                              Print.Main, hashedKeyModN)
+                             Print.Main, hashedKeyModN)
             else:
                 node_id = raw_input('Main$ Please enter the node_id>')
                 if int(node_id) == int(hashedKeyModN):
