@@ -102,7 +102,7 @@ class Wire:
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         Print.print_(
             "send_reply$ " + str(sender_addr) +
-            ", response_code: " + str(response_code) +
+            ", response_code: " + Response.print_response(response_code) +
             ", value: " + value +
             ", value length: " + str(value_length) +
             ", mode: " +

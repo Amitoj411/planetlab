@@ -12,6 +12,8 @@ import time
 import NodeList
 import Mode
 import Print
+# import sys
+import Exceptions
 
 
 def off_load_get(key):
@@ -139,7 +141,8 @@ def try_to_get(key):
     except MemoryError:
         response = Response.OVERLOAD
     except:
-        response = Response.STOREFAILURE
+        # response = Response.STOREFAILURE
+        raise
     return response, value_to_send[0]
 
 
@@ -161,15 +164,20 @@ def try_to_remove(key):
 
 def try_to_put(key, value):
     try:
-        # Print.print_ "Main$ hash(%s) %% int(%d) == %d: , %d" % (key, int(N), hash(key) % int(N), hash(key))
-        kvTable.put(key, value)
-        Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
-        response = Response.SUCCESS
+        # Check of the hashtable size before insertions
+        if kvTable.size() > 64000000:
+            raise Exceptions.OutOfSpaceException()
+        else:
+            kvTable.put(key, value)
+            Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
+            response = Response.SUCCESS
     except IOError:
         response = Response.OUTOFSPACE
+    except Exceptions.OutOfSpaceException:
+        response = Response.OUTOFSPACE
     except:
-        response = Response.STOREFAILURE
-        # raise
+        # response = Response.STOREFAILURE
+        raise
     return response
 
 

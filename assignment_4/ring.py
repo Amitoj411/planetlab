@@ -1,6 +1,5 @@
 __author__ = 'Owner'
 
-
 class Ring:
     __element1 = 123
     __element2 = "this is Africa"
@@ -31,7 +30,6 @@ class Ring:
                 print "     " + "KV[" + key + "]:"+ value      # prints each key-value pair.
         print "     "
 
-
     def remove(self, key):
         try:
             val = self.hashTable[key]
@@ -40,3 +38,9 @@ class Ring:
         except:
             raise
 
+
+    def size(self):
+        sum = 0
+        for k, v in self.hashTable.iteritems():
+            sum = sum + len(v)
+        return sum
