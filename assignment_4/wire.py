@@ -8,6 +8,7 @@ import Response
 import Colors
 import NodeList
 import Mode
+import Print
 
 class Wire:
     description = "This is implemented on top of the request/reply protocol you developed for A1 " \
@@ -21,8 +22,9 @@ class Wire:
 
     def __init__(self, numberOfNodes, hashedKeyModN, mode):
         self.numberOfNodes = numberOfNodes
-        self.hashedKeyModN = hashedKeyModN
-        self.mode =mode
+        self.hashedKeyModN = hashedKeyModN #Local node only
+        self.mode = mode
+        # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
     def send_request(self, command, key, value_length, value, node_overwrite):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
@@ -34,13 +36,13 @@ class Wire:
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        print Colors.Colors.OKGREEN + "send_request$ command:" + Command.print_command(command) \
+        Print.print_("send_request$ command:" + Command.print_command(command) \
             + ", key: " + key \
             + ", value_length: " \
             + str(value_length)  \
             + ", value: " + str(value) \
             + ", node id: " + str(node_overwrite) \
-            + Colors.Colors.ENDC
+            , Print.Wire, self.hashedKeyModN)
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
@@ -77,7 +79,7 @@ class Wire:
             else:  # Other commands
                 value = ("",)
 
-            print Colors.Colors.OKGREEN + "receive_request$ "\
+            Print.print_("receive_request$ "\
                 + str(addr) \
                 + ", Command Received:" \
                 + Command.print_command(command) \
@@ -87,7 +89,7 @@ class Wire:
                 + value[0] \
                 + ", Value Length: " \
                 + str(value_length) \
-                + Colors.Colors.ENDC
+                , Print.Wire, self.hashedKeyModN)
         except:
             raise
 
@@ -98,14 +100,14 @@ class Wire:
 
     def send_reply(self, sender_addr, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-        print Colors.Colors.OKGREEN + \
+        Print.print_(\
             "send_reply$ " + str(sender_addr) + \
             ", response_code: " + str(response_code) +\
             ", value: " + value + \
             ", value length: " + str(value_length) + \
-            ", mode: " + Mode.print_mode(self.mode) + \
-            Colors.Colors.ENDC + \
-            "\n"
+            ", mode: " + Mode.print_mode(self.mode) + "\n"\
+            , Print.Wire, self.hashedKeyModN)
+
 
         fmt = self.fmtReply
         fmt += str(value_length) + 's'
@@ -117,9 +119,9 @@ class Wire:
 
     def receive_reply(self, sender_addr):
         if self.mode == Mode.testing:
-            request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1])
+            request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1], self.hashedKeyModN)
         else:
-            request_reply_response = self.RequestReplyClient_obj.receive(44444)
+            request_reply_response = self.RequestReplyClient_obj.receive(44444, self.hashedKeyModN)
 
 
         if request_reply_response == -1:
@@ -137,11 +139,11 @@ class Wire:
             except:
                 raise
 
-        print Colors.Colors.OKGREEN + "receive_reply$ response:" + Response.print_response(response_code) + \
+        Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
             ", value:" + str(value) + \
-            ", mode: " + Mode.print_mode(self.mode) + \
-            Colors.Colors.ENDC + \
-            "\n"
+            ", mode: " + Mode.print_mode(self.mode) + "\n"\
+            , Print.Wire, self.hashedKeyModN)
+            
         return response_code, value
 
     # Server
