@@ -14,6 +14,57 @@ import Mode
 import Print
 
 
+def off_load_get(key):
+    successor = nodeCommunicationObj.search(key, hashedKeyModN)
+    if successor != -2:
+        # Print.print_ "The Key Doesn't exist on the network, will return current node"
+        if successor != int(hashedKeyModN):  # not the local node
+            wireObj.send_request(Command.GET, key, 0, "", successor)
+            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+            value = value[0]
+            if response_code == Response.SUCCESS: Print.print_("Value:" + str(value),
+                                                               Print.Main, hashedKeyModN)
+        else:  # the local node
+            response_code, value = try_to_get(key)
+    else:
+        response_code, value = try_to_get(key)
+        if response_code != Response.SUCCESS:
+            response_code = Response.NoExternalAliveNodes
+            # value = ("",)
+            value = ""
+    # Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
+    return response_code, value
+
+
+def off_load_put(key, value):
+    successor = nodeCommunicationObj.search(key, hashedKeyModN)
+    if successor != -2:
+        Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
+        if successor != int(hashedKeyModN):  # not the local node
+            wireObj.send_request(Command.PUT, key, len(value), value, successor)
+            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+        else:  # local
+            response_code = try_to_put(key, value)
+    else:  # There is no nodes in the network"
+        response_code = try_to_put(key, value)
+    return response_code
+
+
+def off_load_remove(key):
+    successor = nodeCommunicationObj.search(key, hashedKeyModN)
+    if successor != -2:
+        Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
+        if successor != int(hashedKeyModN):  # not the local node
+            wireObj.send_request(Command.REMOVE, key, 0, "", successor)
+            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+        else:
+            response_code = try_to_remove(key)
+    else:
+        response_code = try_to_remove(key)
+        if response_code != Response.SUCCESS:
+            response_code = Response.NoExternalAliveNodes
+    return response_code
+
 def receive_request():
     while True:
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
@@ -21,31 +72,23 @@ def receive_request():
             # load balancing should be handled on the receiver side as well (Just for testing purposes
             if mode != Mode.testing:
                 response = try_to_put(key, value)
-            else:
-                successor = nodeCommunicationObj.search(key, hashedKeyModN)
-                if successor != -2:
-                    # Print.print_ "The Key Doesn't exist on the network, will return current node"
-                    if successor != int(hashedKeyModN):  # not the local node
-                        wireObj.send_request(Command.GET, key, 0, "", successor)
-                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
-                        if response_code == Response.SUCCESS: Print.print_("Value:" + str(value[0]),
-                                                                           Print.Main, hashedKeyModN)
-                    else:  # the local node
-                        response_code, value = try_to_get(key)
-                else:
-                    response_code, value = try_to_get(key)
-                    if response_code != Response.SUCCESS:
-                        response_code = Response.NoExternalAliveNodes
-                        value = ("",)
-                Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
+            else:  # testing mode
+                response = off_load_put(key, value)
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
-            response, value_to_send = try_to_get(key)
+            if mode != Mode.testing:
+                response, value_to_send = try_to_get(key)
+            else:  # testing mode
+                response, value = off_load_get(key)
+                value_to_send = value[0]
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
-            response = try_to_remove(key)
+            if mode != Mode.testing:
+                response = try_to_remove(key)
+            else:  # testing mode
+                response = off_load_remove(key)
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.SHUTDOWN:
@@ -87,16 +130,17 @@ def receive_request():
 def try_to_get(key):
     value_to_send = ("", )
     try:
-        value_to_send = kvTable.get(key)
+        value = kvTable.get(key)
         Print.print_("KV[" + str(key) + "]=" + kvTable.get(key), Print.Main, hashedKeyModN)
         response = Response.SUCCESS
+        value_to_send = (value, )
     except KeyError:
         response = Response.NONEXISTENTKEY
     except MemoryError:
         response = Response.OVERLOAD
     except:
         response = Response.STOREFAILURE
-    return response, (value_to_send,)
+    return response, value_to_send[0]
 
 
 
@@ -151,21 +195,7 @@ def user_input():
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code, value = try_to_get(key)
             else:  # Not local
-                successor = nodeCommunicationObj.search(key, hashedKeyModN)
-                if successor != -2:
-                    # Print.print_ "The Key Doesn't exist on the network, will return current node"
-                    if successor != int(hashedKeyModN):  # not the local node
-                        wireObj.send_request(Command.GET, key, 0, "", successor)
-                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
-                        if response_code == Response.SUCCESS: Print.print_("Value:" + str(value[0]),
-                                                                           Print.Main, hashedKeyModN)
-                    else:  # the local node
-                        response_code, value = try_to_get(key)
-                else:
-                    response_code, value = try_to_get(key)
-                    if response_code != Response.SUCCESS:
-                        response_code = Response.NoExternalAliveNodes
-                        value = ("",)
+                response_code, value = off_load_get(key)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
 
         elif nb == "3":  # PUT
@@ -174,16 +204,7 @@ def user_input():
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_put(key, value)
             else:
-                successor = nodeCommunicationObj.search(key, hashedKeyModN)
-                if successor != -2:
-                    Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
-                    if successor != int(hashedKeyModN):  # not the local node
-                        wireObj.send_request(Command.PUT, key, len(value), value, successor)
-                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
-                    else:  # local
-                        response_code = try_to_put(key, value)
-                else:  # There is no nodes in the network"
-                    response_code = try_to_put(key, value)
+                response_code = off_load_put(key, value)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
 
         elif nb == "4":  # remove
@@ -192,18 +213,7 @@ def user_input():
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_remove(key)
             else:
-                successor = nodeCommunicationObj.search(key, hashedKeyModN)
-                if successor != -2:
-                    Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
-                    if successor != int(hashedKeyModN):  # not the local node
-                        wireObj.send_request(Command.REMOVE, key, 0, "", successor)
-                        response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
-                    else:
-                        response_code = try_to_remove(key)
-                else:
-                    response_code = try_to_remove(key)
-                    if response_code != Response.SUCCESS:
-                        response_code = Response.NoExternalAliveNodes
+                response_code = off_load_remove(key)
             Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
         elif nb == "5":   # search
             key = raw_input('Main$ Please enter the key>')

@@ -49,7 +49,7 @@ class NodeCommunication:
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
                 response_code, value = wireObj.receive_reply("127.0.0.1:44444") # not replying to the TA
                 Print.print_("Searched for node "+ str(cursor) \
-                    + "and received response: "+ Response.print_response(response_code) + "\n",
+                    + " and received response: "+ Response.print_response(response_code) + "\n",
                              Print.AvailabilityAndConsistency, localNode)
 
                 # If receive no reply from the cursor node, point cursor to the next node
@@ -137,7 +137,7 @@ class NodeCommunication:
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode), successor)
             response_code, value = wire_obj.receive_reply("127.0.0.1:44444") # Not replying to the TA
         elif successor == -2:
-            print "stopped after three searchs"
+            print "stopped after three searches"
 
         Print.print_("Join synchronization is finished"+ "\n"\
              ,Print.AvailabilityAndConsistency, localNode)

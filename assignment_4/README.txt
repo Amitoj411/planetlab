@@ -22,8 +22,8 @@ Modes:
 #######################
     Summary:
         The code runs consistent hashing to load balance the keys across the network.
-        No membership protocol is implemented; each time operation (PUT, GET, ..etc) need to be executed a PING command
-        is sent to the node before the operation. If it failed, the command will be sent to first successor
+        No membership protocol is implemented; each time operation (PUT, GET, and REMOVE) need to be executed a
+        PING command is sent to the node before the operation. If it failed, the command will be sent to first successor
         (target node -1; counter clockwise) up to 3 (Arbitrary selected).
 
     Failure:

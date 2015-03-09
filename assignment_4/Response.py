@@ -27,6 +27,8 @@ def print_response(x):
         return "RPNOREPLY"
     elif x == 0x22:
         return "NoExternalAliveNodes"
+    else:
+        return "SOMETHING WRONG happpened x:" + str(x)
 
 # RESPONSE = {
 #     "SUCCESS" : 0x01 ,  # store data indexed by strings.

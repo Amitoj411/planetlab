@@ -79,16 +79,16 @@ class Wire:
             else:  # Other commands
                 value = ("",)
 
-            Print.print_("receive_request$ "\
-                + str(addr) \
-                + ", Command Received:" \
-                + Command.print_command(command) \
-                + ", Key:" \
-                + key \
-                + ", Value: " \
-                + value[0] \
-                + ", Value Length: " \
-                + str(value_length) \
+            Print.print_("receive_request$ "
+                + str(addr)
+                + ", Command Received:"
+                + Command.print_command(command)
+                + ", Key:"
+                + key
+                + ", Value: "
+                + value[0]
+                + ", Value Length: "
+                + str(value_length)
                 , Print.Wire, self.hashedKeyModN)
         except:
             raise
@@ -100,13 +100,14 @@ class Wire:
 
     def send_reply(self, sender_addr, key, response_code, value_length, value):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-        Print.print_(\
-            "send_reply$ " + str(sender_addr) + \
-            ", response_code: " + str(response_code) +\
-            ", value: " + value + \
-            ", value length: " + str(value_length) + \
-            ", mode: " + Mode.print_mode(self.mode) + "\n"\
-            , Print.Wire, self.hashedKeyModN)
+        Print.print_(
+            "send_reply$ " + str(sender_addr) +
+            ", response_code: " + str(response_code) +
+            ", value: " + value +
+            ", value length: " + str(value_length) +
+            ", mode: " +
+            Mode.print_mode(self.mode) +
+            "\n", Print.Wire, self.hashedKeyModN)
 
 
         fmt = self.fmtReply
