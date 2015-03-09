@@ -67,6 +67,7 @@ def off_load_remove(key):
             response_code = Response.NoExternalAliveNodes
     return response_code
 
+
 def receive_request():
     while True:
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
@@ -83,7 +84,7 @@ def receive_request():
                 response, value_to_send = try_to_get(key)
             else:  # testing mode
                 response, value = off_load_get(key)
-                value_to_send = value[0]
+                value_to_send = value
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:

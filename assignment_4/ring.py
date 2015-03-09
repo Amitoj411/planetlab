@@ -26,8 +26,10 @@ class Ring:
         if len(self.hashTable.items()) == 0:
             print "     Empty hashtable"
         else:
+            count = 1
             for key, value in self.hashTable.items():
-                print "     " + "KV[" + key + "]:"+ value      # prints each key-value pair.
+                print "     " + str(count) + "- KV[" + key + "]:" + value      # prints each key-value pair.
+                count += 1
         print "     "
 
     def remove(self, key):
