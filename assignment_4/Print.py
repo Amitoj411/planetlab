@@ -9,8 +9,9 @@ RequestReplyClient = 04
 
 debug = False
 
+
 def print_(string, mode, node_id):
-    if debug == True:
+    if debug:
         node_id = str(node_id)
         if mode == Main:
             print "main$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC

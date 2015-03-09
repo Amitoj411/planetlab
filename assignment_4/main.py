@@ -14,18 +14,9 @@ import Mode
 import Print
 
 
-# def sendAndWaitForAReply(key, value):
-    # wireObj.send(Command.PUT, key, len(value), value)  # @Abraham & @Amitoj
-
-
-
 def receive_request():
     while True:
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
-        # Print.print_ "Receiving:" + command
-        # @Michael: Please handle the msg
-        # You might receive get or put msgs from other nodes.
-        # Process the request locally and send them back the value in case of get
         if command == Command.PUT:
             # load balancing should be handled on the receiver side as well (Just for testing purposes
             if mode != Mode.testing:
@@ -47,45 +38,14 @@ def receive_request():
                         response_code = Response.NoExternalAliveNodes
                         value = ("",)
                 Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
-            # try:
-            #     kvTable.put(key, value)
-            #     response = Response.SUCCESS
-            # except IOError:
-            #     response = Response.OUTOFSPACE
-            # except:
-            #     response = Response.STOREFAILURE
-
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
             response, value_to_send = try_to_get(key)
-
-            # value_to_send = ""
-            #
-            # try:
-            #     value_to_send = kvTable.get(key)
-            #     response = Response.SUCCESS
-            # except KeyError:
-            #     response = Response.NONEXISTENTKEY
-            # except MemoryError:
-            #     response = Response.OVERLOAD
-            # except:
-            #     response = Response.STOREFAILURE
-
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
             response = try_to_remove(key)
-            # try:
-            #     kvTable.remove(key)
-            #     response = Response.SUCCESS
-            # except KeyError:
-            #     response = Response.NONEXISTENTKEY
-            # except MemoryError:
-            #     response = Response.OVERLOAD
-            # except:
-            #     response = Response.STOREFAILURE
-
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.SHUTDOWN:
@@ -101,7 +61,6 @@ def receive_request():
         elif command == Command.JOIN:
             join_id = int(value)
             wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")  # For th join
-            # Print.print_ "Relieved Join ID:" + str(join_id)
             keys_to_be_deleted = []
             for key in kvTable.hashTable:
                 if hash(key) % int(N) == join_id \
@@ -115,7 +74,8 @@ def receive_request():
                     if response_code == Response.SUCCESS:
                         keys_to_be_deleted.append(key)
                     else:
-                        Print.print_("The joined node is dead for this key" + ", response: " + Response.print_response(response_code), Print.Main, hashedKeyModN)
+                        Print.print_("The joined node is dead for this key" + ", response: " +
+                                     Response.print_response(response_code), Print.Main, hashedKeyModN)
             for key in keys_to_be_deleted:
                 kvTable.remove(key)
 
@@ -295,15 +255,13 @@ def user_input():
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
         elif nb == "8":   # Toggle debugging
-            if Print.debug == True:
+            if Print.debug:
                 Print.debug = False
             else:
                 Print.debug = True
         else:
             # sys.exit("Exit normally.")
             os._exit(10)
-
-
 
 
 if __name__ == "__main__":

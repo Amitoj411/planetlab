@@ -17,6 +17,8 @@ local.properties
 .loadpath
 .xml
 .gitignore
+*.jar
+.idea/*
 
 # External tool builders
 .externalToolBuilders/
