@@ -172,7 +172,7 @@ def try_to_put(key, value):
 def user_input():
     while True:
         print "\nmain$ [node_id:" + hashedKeyModN + "] Please Enter one of the following:" + "\n" +\
-              "     1- Print.print_ the local Key-value store:" + "\n" + \
+              "     1- Print the local Key-value store:" + "\n" + \
               "     2- Get a value for a key (KV[key]):" + "\n" + \
               "     3- Put a value for a key (KV[key]=value):" + "\n" + \
               "     4- Remove a key from KV):" + "\n" + \
