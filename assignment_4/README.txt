@@ -10,12 +10,8 @@ Modes:
     PlanetLab nodes: To run nodes on planetLab. It differs from the Local mode by the way the node ids are obtained
         Syntax: python main.py 3
         The first shell argument is the number of nodes in system
+        The second is the id of the current node number [0 - 2^(n-1)]
 
-    Testing: To run nodes so they would reply to sender's port number instead of
-             our reserved port for reply listening (44444)
-        Syntax: python main.py 3 0 testing
-        The first shell argument is the number of nodes in system
-        The second is the id of the current node number [0-2^(n-1)]
 
 #######################
 ## Design
@@ -71,4 +67,6 @@ RPNOREPLY: request reply is reporting dead server
 #######################
 ## Requirements
 #######################
-Python 2.5.1 or 2.7.8
+- Python 2.5.1 or 2.7.8
+- 1 second sleep for each iteration if huge list of keys were send to a node (Multi-threaded server
+    is not implemented yet)

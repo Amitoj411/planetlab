@@ -187,7 +187,7 @@ def try_to_put(key, value):
 
 def user_input():
     while True:
-        print "\nmain$ [node_id:" + hashedKeyModN + "] Please Enter one of the following:" + "\n" +\
+        print "\nmain$ [node_id:" + str(hashedKeyModN) + "] Please Enter one of the following:" + "\n" +\
               "     1- Print the local Key-value store:" + "\n" + \
               "     2- Get a value for a key (KV[key]):" + "\n" + \
               "     3- Put a value for a key (KV[key]=value):" + "\n" + \
@@ -291,19 +291,21 @@ if __name__ == "__main__":
     N = args[1]
     mode = ""
     Print.debug = True
-    if len(args) > 3:
-        hashedKeyModN = args[2]
-        mode = Mode.testing
-    elif len(args) > 2:
+    # if len(args) > 3:
+    #     hashedKeyModN = args[2]
+    #     mode = Mode.testing
+    if len(args) > 2:
         hashedKeyModN = args[2]
         mode = Mode.local
-    else:
+    else:  # planetLab mode
         hashedKeyModN = NodeList.look_up_ip_address()
         if hashedKeyModN == -1:
                 Print.print_("The local node ip address is not the node_list_planetLab.txt file", Print.Main, hashedKeyModN)
                 os._exit(-1)
         else:
             mode = Mode.planetLab
+            print "PlanetLab mode"
+
 
     kvTable = ring.Ring()
     wireObj = wire.Wire(int(N), hashedKeyModN, mode)

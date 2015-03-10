@@ -29,17 +29,24 @@ def look_up_ip_address():  # (i.e.) given the local IP return the ip:port
     _file = open(fname_planet_lab, 'rU')
     nodes = _file.readlines()
 
-    ip_address = get_ip_address()
+    # ip_address = get_ip_address()
+    hostname = get_hostnmae()
 
     for line in nodes:
         _arr = line.split(',')
         node_id = int(_arr[0].strip())
         _arr = _arr[1].split(':')
-        if ip_address == _arr[0].strip():
+        if hostname == _arr[0].strip():
             return node_id
 
     return -1
 
+def get_hostnmae():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('google.com', 0))
+    result = socket.gethostname()
+    s.close()
+    return result
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
