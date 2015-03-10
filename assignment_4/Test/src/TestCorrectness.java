@@ -2,28 +2,25 @@
 import static org.junit.Assert.*;
 import org.junit.*;
 
-import org.junit.runners.MethodSorters;
-import org.junit.FixMethodOrder;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestCorrectness {
 	
 	
 	//PlanetLab Testing
+	
+	final static String Node1 = "planetlab-01.vt.nodes.planet-lab.org";
 	/*
-	final static String Node1 = "142.103.2.1";
 	final static String Node2 = "142.103.2.2";
 	final static String Node3 = "193.167.187.185";
 	*/
 	
 	//Local Testing
-	final static String Localhost = "localhost";
+	//final static String Localhost = "localhost";
 	
 	//Other member variables
 	final static int PORT = 50000;
@@ -32,7 +29,7 @@ public class TestCorrectness {
 	@Before
 	public void Setup()
 	{
-		ADDR = Localhost;
+		ADDR = Node1;
 	}
 	
 	//Constant Enumerations

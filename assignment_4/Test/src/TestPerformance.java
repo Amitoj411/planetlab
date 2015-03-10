@@ -82,7 +82,8 @@ public class TestPerformance {
     public static void measureGetThroughput() throws SocketException, IOException {
     	final int numberRuns = 10;
     	final double NANOTOMILLI = 1000000;
-    	double averageThroughput = 0;
+    	double averageRoundTrip = 0;
+    	final int BYTESIZE = 64;
     	
     	DecimalFormat decimalFormat = new DecimalFormat();
 		decimalFormat.setMaximumFractionDigits(4);
@@ -93,7 +94,7 @@ public class TestPerformance {
     	for (int i=0; i<numberRuns; i++)
     	{	
     		DatagramSocket sock = new DatagramSocket();
-    		byte[] buf = new byte[64];
+    		byte[] buf = new byte[BYTESIZE];
     		
     		//Unique Request Header
     		buf[0] = 7;
@@ -115,11 +116,13 @@ public class TestPerformance {
             long estimatedTime = System.nanoTime() - startTime;
             
             System.out.println("Key retrieved. Duration: " + decimalFormat.format(estimatedTime/NANOTOMILLI) + " ms");
-            averageThroughput += estimatedTime/NANOTOMILLI;
+            averageRoundTrip += estimatedTime/NANOTOMILLI;
     	}
     	
-    	averageThroughput /= numberRuns;
-    	System.out.println("Average Throughput: " + decimalFormat.format(averageThroughput) + " ms\n");
+    	averageRoundTrip /= numberRuns;
+    	double averageThroughput = numberRuns * BYTESIZE / averageRoundTrip ;
+    	System.out.println("Average RoundTrip Duration: " + decimalFormat.format(averageRoundTrip) + " ms\n");
+    	System.out.println("Average Throughput: " + decimalFormat.format(averageThroughput) + " bytes/s\n");
     }
    
     public static void testKillNodes() throws SocketException, IOException {
