@@ -22,7 +22,7 @@ def off_load_get(key):
         # Print.print_ "The Key Doesn't exist on the network, will return current node"
         if successor != int(hashedKeyModN):  # not the local node
             wireObj.send_request(Command.GET, key, 0, "", successor)
-            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+            response_code, value = wireObj.receive_reply()  # We are not sending the TA
             value = value[0]
             if response_code == Response.SUCCESS: Print.print_("Value:" + str(value),
                                                                Print.Main, hashedKeyModN)
@@ -44,7 +44,7 @@ def off_load_put(key, value):
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
             wireObj.send_request(Command.PUT, key, len(value), value, successor)
-            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+            response_code, value = wireObj.receive_reply()  # We are sending the TA!
         else:  # local
             response_code = try_to_put(key, value)
     else:  # There is no nodes in the network"
@@ -58,7 +58,7 @@ def off_load_remove(key):
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
             wireObj.send_request(Command.REMOVE, key, 0, "", successor)
-            response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+            response_code, value = wireObj.receive_reply()  # We are not sending the TA
         else:
             response_code = try_to_remove(key)
     else:
@@ -73,25 +73,28 @@ def receive_request():
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
         if command == Command.PUT:
             # load balancing should be handled on the receiver side as well (Just for testing purposes
-            if mode != Mode.testing:
-                response = try_to_put(key, value)
-            else:  # testing mode
-                response = off_load_put(key, value)
+            # if mode != Mode.testing:
+            #     response = try_to_put(key, value)
+            # else:  # testing mode
+            response = off_load_put(key, value)
+
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.GET:
-            if mode != Mode.testing:
-                response, value_to_send = try_to_get(key)
-            else:  # testing mode
-                response, value = off_load_get(key)
-                value_to_send = value
+            # if mode != Mode.testing:
+            #     response, value_to_send = try_to_get(key)
+            # else:  # testing mode
+            response, value = off_load_get(key)
+            value_to_send = value
+
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
         #
         elif command == Command.REMOVE:
-            if mode != Mode.testing:
-                response = try_to_remove(key)
-            else:  # testing mode
-                response = off_load_remove(key)
+            # if mode != Mode.testing:
+            #     response = try_to_remove(key)
+            # else:  # testing mode
+            response = off_load_remove(key)
+
             wireObj.send_reply(sender_addr, key, response, 0, "")
 
         elif command == Command.SHUTDOWN:
@@ -116,7 +119,7 @@ def receive_request():
 
                     key_value = kvTable.hashTable[key]
                     wireObj.send_request(Command.PUT, key, len(key_value), key_value, join_id)
-                    response_code, value = wireObj.receive_reply(sender_addr)
+                    response_code, value = wireObj.receive_reply()
                     if response_code == Response.SUCCESS:
                         keys_to_be_deleted.append(key)
                     else:
@@ -238,7 +241,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code),
                              Print.Main, hashedKeyModN)
             else:
@@ -248,7 +251,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
         elif nb == "7":   # Ping
             option = raw_input('Main$ Ping by key (y/n)?>')
@@ -260,7 +263,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
             else:
@@ -270,7 +273,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply("127.0.0.1:44444")  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
         elif nb == "8":   # Toggle debugging

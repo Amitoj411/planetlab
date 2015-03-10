@@ -22,7 +22,7 @@ if __name__ == "__main__":
         print "seed:" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, node_id)  # send to node 0
-        response_code, value = wireObj.receive_reply("127.0.0.1:44444")
+        response_code, value = wireObj.receive_reply()
         print print_response(response_code)
 
         node_id += 1
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, node_id)  # send to node 0
-        response_code, value = wireObj.receive_reply("127.0.0.1:44444")
+        response_code, value = wireObj.receive_reply()
         print print_response(response_code)
 
         node_id -= 1

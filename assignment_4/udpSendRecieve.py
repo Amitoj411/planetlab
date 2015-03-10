@@ -4,10 +4,21 @@ import socket
 
 
 class UDPNetwork:
+    send_socket = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
+
     def send(self, udp_ip, udp_port, message):
-        sock = socket.socket(socket.AF_INET, # Internet
-                             socket.SOCK_DGRAM) # UDP
-        sock.sendto(message, (udp_ip, int(udp_port)))
+        # sock = socket.socket(socket.AF_INET,  # Internet
+        #                      socket.SOCK_DGRAM)  # UDP
+        self.send_socket.sendto(message, (udp_ip, int(udp_port)))
+
+    # Just for the sender
+    def reply(self, timeout):
+        self.send_socket.settimeout(timeout)  # 100 ms be default
+        while True:
+            reply, addr = self.send_socket.recvfrom(1024)
+            break
+        return reply, addr
 
     def receive(self, udp_port, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

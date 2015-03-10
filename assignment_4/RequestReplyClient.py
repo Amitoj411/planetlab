@@ -10,6 +10,7 @@ import Colors
 import random
 import Print
 
+
 class RequestReplyClient:
     udp_obj = udpSendRecieve.UDPNetwork()
     timeout = 2  # 100 ms by default unless changed by constructor
@@ -69,13 +70,12 @@ class RequestReplyClient:
         # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id+ self.message)
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
 
-
-    def receive(self, port_number, local_node_id):
+    def receive_reply(self, local_node_id):
         resend_counter = 1
         timeout = self.timeout
         while resend_counter <= 3:
             try:
-                data, addr = self.udp_obj.receive(port_number, timeout)
+                data, addr = self.udp_obj.reply(timeout)
                 received_header = data[0:16]
                 payload = data[16:]
                 # print "data:" + data
@@ -100,7 +100,8 @@ class RequestReplyClient:
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
                 # print "socket.error: " + str(socket.error)
 
-
         return -1
+
+
 
 

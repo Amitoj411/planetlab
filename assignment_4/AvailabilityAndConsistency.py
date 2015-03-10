@@ -47,7 +47,7 @@ class NodeCommunication:
                 # Try to contact the cursor
                 wireObj = wire.Wire(self.numberOfNodes, localNode, self.mode) ####### BUGGGGGGGGGGGGGGGG
                 wireObj.send_request(Command.PING, key, 0, "", cursor)
-                response_code, value = wireObj.receive_reply("127.0.0.1:44444") # not replying to the TA
+                response_code, value = wireObj.receive_reply() # not replying to the TA
                 Print.print_("Searched for node "+ str(cursor) \
                     + " and received response: "+ Response.print_response(response_code) + "\n",
                              Print.AvailabilityAndConsistency, localNode)
@@ -111,7 +111,7 @@ class NodeCommunication:
                 Print.print_("Searching for Node:  " + \
                              str(cursor) , Print.AvailabilityAndConsistency, localNode)
                 wire_obj.send_request(Command.PING, "Anykey", 0, "", cursor)
-                response_code, value = wire_obj.receive_reply("127.0.0.1:44444")  # Not sending back to the TA
+                response_code, value = wire_obj.receive_reply()  # Not sending back to the TA
                 # print "Response: "+ Response.print_response(response_code)
 
                 # If time-out continue, else stop
@@ -135,7 +135,7 @@ class NodeCommunication:
                          ,Print.AvailabilityAndConsistency, localNode)
             wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode) # BUGGGGGGGGGGGGGGGGGGGGG
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode), successor)
-            response_code, value = wire_obj.receive_reply("127.0.0.1:44444") # Not replying to the TA
+            response_code, value = wire_obj.receive_reply() # Not replying to the TA
         elif successor == -2:
             print "stopped after three searches"
 
