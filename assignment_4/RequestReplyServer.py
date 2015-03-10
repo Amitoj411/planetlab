@@ -29,11 +29,12 @@ class RequestReplyServer:
     def send(self, udp_ip, udp_port, message):
         # Prepare the header as A1
         # print "self.unique_request_id(Server):" + self.unique_request_id
-        self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message)
+        self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
-    def receive(self, udp_port):
+    def receive(self, udp_port, handler, cur_thread):
         while True:
-            data, addr = self.udp_obj.receive(udp_port, self.timeout)
+            data, addr = self.udp_obj.receive(udp_port, self.timeout, handler, cur_thread)
+
 
             received_header = data[0:16]
             # print "data:" + data + ", data length:" + str(len(data)) +\

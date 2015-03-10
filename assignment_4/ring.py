@@ -40,9 +40,12 @@ class Ring:
         except:
             raise
 
-
     def size(self):
         sum = 0
+
+        # lock
         for k, v in self.hashTable.iteritems():
             sum = sum + len(v)
+        # un-lock
+
         return sum

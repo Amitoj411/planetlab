@@ -26,7 +26,7 @@ class Wire:
         self.mode = mode
         # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
-    def send_request(self, command, key, value_length, value, node_overwrite):
+    def send_request(self, command, key, value_length, value, node_overwrite, timeout=.1):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
         if command == Command.PUT or command == Command.JOIN:
@@ -59,13 +59,13 @@ class Wire:
                                                                             ip_port.split(':')[1],
                                                                             msg,
                                                                             local_ip_port.split(':')[1],
-                                                                            .1)
+                                                                            timeout)
 
         self.RequestReplyClient_obj.send()
 
-    def receive_request(self, hashedKeyMod):
+    def receive_request(self, hashedKeyMod, handler, cur_thread):
         ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
-        header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1])
+        header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1], handler, cur_thread)
 
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
@@ -89,7 +89,7 @@ class Wire:
                 + value[0]
                 + ", Value Length: "
                 + str(value_length)
-                , Print.Wire, self.hashedKeyModN)
+                , Print.Wire, self.hashedKeyModN, cur_thread)
         except:
             raise
 

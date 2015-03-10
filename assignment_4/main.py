@@ -14,7 +14,7 @@ import Mode
 import Print
 # import sys
 import Exceptions
-
+import SocketServer
 
 def off_load_get(key):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
@@ -68,69 +68,83 @@ def off_load_remove(key):
     return response_code
 
 
-def receive_request():
-    while True:
-        command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN)  # type: request/reply
-        if command == Command.PUT:
-            # load balancing should be handled on the receiver side as well (Just for testing purposes
-            # if mode != Mode.testing:
-            #     response = try_to_put(key, value)
-            # else:  # testing mode
-            response = off_load_put(key, value)
+class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
+        pass
 
-            wireObj.send_reply(sender_addr, key, response, 0, "")
 
-        elif command == Command.GET:
-            # if mode != Mode.testing:
-            #     response, value_to_send = try_to_get(key)
-            # else:  # testing mode
-            response, value = off_load_get(key)
-            value_to_send = value
+class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        # data = self.request[0].strip()
+        # socket = self.request[1]
+        # print("{} wrote: ".format(self.client_address[0]))
+        # print(data)
+        # socket.sendto(data.upper(), self.client_address)
+        cur_thread = threading.current_thread()
 
-            wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
-        #
-        elif command == Command.REMOVE:
-            # if mode != Mode.testing:
-            #     response = try_to_remove(key)
-            # else:  # testing mode
-            response = off_load_remove(key)
 
-            wireObj.send_reply(sender_addr, key, response, 0, "")
+        # def receive_request():
+        while True:
+            command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, self, cur_thread)
+            if command == Command.PUT:
+                # load balancing should be handled on the receiver side as well (Just for testing purposes
+                # if mode != Mode.testing:
+                #     response = try_to_put(key, value)
+                # else:  # testing mode
+                response = off_load_put(key, value)
 
-        elif command == Command.SHUTDOWN:
-            response = Response.SUCCESS
-            wireObj.send_reply(sender_addr, key, response, 0, "")
-            os._exit(10)
+                wireObj.send_reply(sender_addr, key, response, 0, "")
 
-        elif command == Command.PING:
-            response = Response.SUCCESS
-            value = "Alive!"
-            wireObj.send_reply(sender_addr, key, response, len(value), value)
+            elif command == Command.GET:
+                # if mode != Mode.testing:
+                #     response, value_to_send = try_to_get(key)
+                # else:  # testing mode
+                response, value = off_load_get(key)
+                value_to_send = value
 
-        elif command == Command.JOIN:
-            join_id = int(value)
-            wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")  # For th join
-            keys_to_be_deleted = []
-            for key in kvTable.hashTable:
-                if hash(key) % int(N) == join_id \
-                        or (hash(key) % int(N) < join_id and hash(key) % int(N) < hashedKeyModN) \
-                        or (hash(key) % int(N) > join_id):  # ensure joinID is the ID of the predecessor or the upper
-                        # space between the joined node and the received node
+                wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
+            #
+            elif command == Command.REMOVE:
+                # if mode != Mode.testing:
+                #     response = try_to_remove(key)
+                # else:  # testing mode
+                response = off_load_remove(key)
 
-                    key_value = kvTable.hashTable[key]
-                    wireObj.send_request(Command.PUT, key, len(key_value), key_value, join_id)
-                    response_code, value = wireObj.receive_reply()
-                    if response_code == Response.SUCCESS:
-                        keys_to_be_deleted.append(key)
-                    else:
-                        Print.print_("The joined node is dead for this key" + ", response: " +
-                                     Response.print_response(response_code), Print.Main, hashedKeyModN)
-            for key in keys_to_be_deleted:
-                kvTable.remove(key)
+                wireObj.send_reply(sender_addr, key, response, 0, "")
 
-        else:
-            response = Response.UNRECOGNIZED
-            wireObj.send_reply(sender_addr, key, response, 0, "")
+            elif command == Command.SHUTDOWN:
+                response = Response.SUCCESS
+                wireObj.send_reply(sender_addr, key, response, 0, "")
+                os._exit(10)
+
+            elif command == Command.PING:
+                response = Response.SUCCESS
+                value = "Alive!"
+                wireObj.send_reply(sender_addr, key, response, len(value), value)
+
+            elif command == Command.JOIN:
+                join_id = int(value)
+                wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")  # For th join
+                keys_to_be_deleted = []
+                for key in kvTable.hashTable:
+                    if hash(key) % int(N) == join_id \
+                            or (hash(key) % int(N) < join_id and hash(key) % int(N) < hashedKeyModN) \
+                            or (hash(key) % int(N) > join_id):  # ensure joinID is the ID of the predecessor or the upper
+                            # space between the joined node and the received node
+
+                        key_value = kvTable.hashTable[key]
+                        wireObj.send_request(Command.PUT, key, len(key_value), key_value, join_id)
+                        response_code, value = wireObj.receive_reply()
+                        if response_code == Response.SUCCESS:
+                            keys_to_be_deleted.append(key)
+                        else:
+                            Print.print_("The joined node is dead for this key" + ", response: " +
+                                         Response.print_response(response_code), Print.Main, hashedKeyModN)
+                for key in keys_to_be_deleted:
+                    kvTable.remove(key)
+
+            else:
+                response = Response.UNRECOGNIZED
+                wireObj.send_reply(sender_addr, key, response, 0, "")
 
 
 def try_to_get(key):
@@ -148,7 +162,6 @@ def try_to_get(key):
         # response = Response.STOREFAILURE
         raise
     return response, value_to_send[0]
-
 
 
 def try_to_remove(key):
@@ -169,12 +182,12 @@ def try_to_remove(key):
 def try_to_put(key, value):
     try:
         # Check of the hashtable size before insertions
-        if kvTable.size() > 64000000:
-            raise Exceptions.OutOfSpaceException()
-        else:
-            kvTable.put(key, value)
-            Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
-            response = Response.SUCCESS
+        # if kvTable.size() > 64000000:
+        #     raise Exceptions.OutOfSpaceException()
+        # else:
+        kvTable.put(key, value)
+        Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
+        response = Response.SUCCESS
     except IOError:
         response = Response.OUTOFSPACE
     except Exceptions.OutOfSpaceException:
@@ -188,14 +201,10 @@ def try_to_put(key, value):
 def user_input():
     while True:
         print "\nmain$ [node_id:" + str(hashedKeyModN) + "] Please Enter one of the following:" + "\n" +\
-              "     1- Print the local Key-value store:" + "\n" + \
-              "     2- Get a value for a key (KV[key]):" + "\n" + \
-              "     3- Put a value for a key (KV[key]=value):" + "\n" + \
-              "     4- Remove a key from KV):" + "\n" + \
-              "     5- Search for a key:" + "\n" + \
-              "     6- Shutdown" + "\n" + \
-              "     7- Ping" + "\n" + \
-              "     8- Turn debugging msgs ON/OFF" + "\n" + \
+              "     1- Print the local Key-value store:            5- Search for a key:" + "\n" + \
+              "     2- Get a value for a key (KV[key]):            6- Shutdown a node by (key/node_id):" + "\n" + \
+              "     3- Put a value for a key (KV[key]=value):      7- Ping a node by (key/node_id):" + "\n" + \
+              "     4- Remove a key from KV):                      8- Turn debugging msgs ON/OFF" + "\n" + \
               "     9- Exit"
 
         nb = raw_input('>')
@@ -312,8 +321,13 @@ if __name__ == "__main__":
 
     nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N), mode)
 
-    receiveThread = threading.Thread(target=receive_request)
-    receiveThread.start()
+    # receiveThread = threading.Thread(target=receive_request)
+    # receiveThread.start()
+    ip_port = NodeList.look_up_node_id(hashedKeyModN, mode)
+    udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    udp_thread = threading.Thread(target=udp_server.serve_forever)
+    udp_thread.start()
+    # print("UDP serving at port", ip_port[1])
 
     nodeCommunicationObj.join(int(hashedKeyModN)) # call joining procedure
 

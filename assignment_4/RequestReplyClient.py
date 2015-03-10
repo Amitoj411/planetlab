@@ -68,7 +68,7 @@ class RequestReplyClient:
         # print "to send:" + to_send
 
         # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id+ self.message)
-        self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
+        self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
 
     def receive_reply(self, local_node_id):
         resend_counter = 1
@@ -97,7 +97,7 @@ class RequestReplyClient:
                 timeout *= 2
                 Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
                       "s. Sending again, trail: " + str(resend_counter), Print.RequestReplyClient, local_node_id)
-                self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
+                self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
                 # print "socket.error: " + str(socket.error)
 
         return -1
