@@ -44,7 +44,7 @@ public class TestPerformance {
     	
     	for (int i=0; i<numberRuns; i++)
     	{	
-    		DatagramSocket sock = new DatagramSocket(44444);
+    		DatagramSocket sock = new DatagramSocket();
     		byte[] buf = new byte[64];
     		
     		//Unique Request Header
@@ -65,7 +65,7 @@ public class TestPerformance {
     		buf[51] = (byte)(3 * randInt);
     		buf[52] = (byte)(1 * randInt);
     		buf[53] = (byte)(4 * randInt);
-    		buf[54] = (byte)(5 * randInt);
+    		buf[54] = (byte)(3 * randInt);
     		buf[55] = (byte)(2 * randInt);
     		buf[56] = (byte)(3 * randInt);
     		
@@ -92,7 +92,7 @@ public class TestPerformance {
     	
     	for (int i=0; i<numberRuns; i++)
     	{	
-    		DatagramSocket sock = new DatagramSocket(44444);
+    		DatagramSocket sock = new DatagramSocket();
     		byte[] buf = new byte[64];
     		
     		//Unique Request Header

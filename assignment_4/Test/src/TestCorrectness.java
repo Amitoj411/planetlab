@@ -2,13 +2,16 @@
 import static org.junit.Assert.*;
 import org.junit.*;
 
+import org.junit.runners.MethodSorters;
+import org.junit.FixMethodOrder;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestCorrectness {
 	
 	
@@ -50,7 +53,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.NONEXISTENTKEY.getValue());
+      assertEquals(Response.NONEXISTENTKEY.getValue(), buf[16]);
       sock.close();
     }
 	
@@ -62,7 +65,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.NONEXISTENTKEY.getValue());
+      assertEquals(Response.NONEXISTENTKEY.getValue(), buf[16]);
       sock.close();
     }
     
@@ -74,7 +77,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.UNRECOGNIZED.getValue());
+      assertEquals(Response.UNRECOGNIZED.getValue(), buf[16]);
       sock.close();
     }
     
@@ -85,7 +88,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.SUCCESS.getValue());
+      assertEquals(Response.SUCCESS.getValue(), buf[16]);
       sock.close();
     }
     
@@ -96,7 +99,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.SUCCESS.getValue());
+      assertEquals(Response.SUCCESS.getValue(), buf[16]);
       sock.close();
     }
     
@@ -107,7 +110,7 @@ public class TestCorrectness {
       DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
       sock.send(pack);
       sock.receive(pack);
-      assertEquals(buf[16], Response.SUCCESS.getValue());
+      assertEquals(Response.SUCCESS.getValue(), buf[16]);
       sock.close();
     }
       
@@ -119,7 +122,7 @@ public class TestCorrectness {
         DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(ADDR), PORT);
         sock.send(pack);
         sock.receive(pack);
-        assertEquals(buf[16], Response.SUCCESS.getValue());
+        assertEquals(Response.SUCCESS.getValue(), buf[16]);
         sock.close();
     }
    
