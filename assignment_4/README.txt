@@ -12,6 +12,38 @@ Modes:
         The first shell argument is the number of nodes in system
         The second is the id of the current node number [0 - 2^(n-1)]
 
+#######################
+## Sets of Test Nodes
+#######################
+THe following sets of nodes have been deployed in groups of 3, isolated from the rest of the other nodes.
+
+    planetlab2.cs.uml.edu
+    planetlab-2.cse.ohio-state.edu
+    planetlab3.wail.wisc.edu
+
+    lefthand.eecs.harvard.edu
+    planetlab2.utdallas.edu
+    pl2.6test.edu.cn
+
+    salt.planetlab.cs.umd.edu
+    planetlab1.utdallas.edu
+    planetlab1.csee.usf.edu
+
+    planetlab-2.sjtu.edu.cn
+    planetlab1.citadel.edu
+    planetlab1.cs.du.edu
+
+    planetlab-01.vt.nodes.planet-lab.org
+    planetlab1.mini.pw.edu.pl
+    pl1.6test.edu.cn
+
+    pl2.eng.monash.edu.au
+    planetlab3.mini.pw.edu.pl
+    planetlab1.cqupt.edu.cn
+
+    planetlab-1.ssvl.kth.se
+    planetlab1.utt.fr
+    planetlab2.cs.ubc.ca
 
 #######################
 ## Design
@@ -70,3 +102,4 @@ RPNOREPLY: request reply is reporting dead server
 - Python 2.5.1 or 2.7.8
 - 1 second sleep for each iteration if huge list of keys were send to a node (Multi-threaded server
     is not implemented yet)
+- Client must have a static external IP Address, not behind a NAT.
