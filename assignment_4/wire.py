@@ -127,7 +127,7 @@ class Wire:
 
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY
-            value = -1
+            value = ("",)
         else:
             try:
                 # request_reply_response = request_reply_response
