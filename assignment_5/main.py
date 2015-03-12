@@ -16,6 +16,9 @@ import Print
 import Exceptions
 import SocketServer
 
+
+lock = threading.RLock()
+
 def off_load_get(key):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
     if successor != -2:
@@ -150,10 +153,11 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
 def try_to_get(key):
     value_to_send = ("", )
     try:
-        value = kvTable.get(key)
-        Print.print_("KV[" + str(key) + "]=" + kvTable.get(key), Print.Main, hashedKeyModN)
-        response = Response.SUCCESS
-        value_to_send = (value, )
+        with lock:
+            value = kvTable.get(key)
+            Print.print_("KV[" + str(key) + "]=" + kvTable.get(key), Print.Main, hashedKeyModN)
+            response = Response.SUCCESS
+            value_to_send = (value, )
     except KeyError:
         response = Response.NONEXISTENTKEY
     except MemoryError:
@@ -166,9 +170,10 @@ def try_to_get(key):
 
 def try_to_remove(key):
     try:
-        value = kvTable.remove(key)
-        Print.print_("Removing KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
-        response = Response.SUCCESS
+        with lock:
+            value = kvTable.remove(key)
+            Print.print_("Removing KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
+            response = Response.SUCCESS
     except KeyError:
         response = Response.NONEXISTENTKEY
     except MemoryError:
@@ -185,9 +190,10 @@ def try_to_put(key, value):
         # if kvTable.size() > 64000000:
         #     raise Exceptions.OutOfSpaceException()
         # else:
-        kvTable.put(key, value)
-        Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
-        response = Response.SUCCESS
+        with lock:
+            kvTable.put(key, value)
+            Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
+            response = Response.SUCCESS
     except IOError:
         response = Response.OUTOFSPACE
     except Exceptions.OutOfSpaceException:
