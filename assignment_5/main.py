@@ -15,9 +15,11 @@ import Print
 # import sys
 import Exceptions
 import SocketServer
+import math
 
 
 lock = threading.RLock()
+
 
 def off_load_get(key):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
@@ -41,17 +43,20 @@ def off_load_get(key):
     return response_code, value
 
 
-def off_load_put(key, value):
+def off_load_put(key, value_):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
     if successor != -2:
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.PUT, key, len(value), value, successor)
+            wireObj.send_request(Command.PUT, key, len(value_), value_, successor)
             response_code, value = wireObj.receive_reply()  # We are sending the TA!
         else:  # local
-            response_code = try_to_put(key, value)
+            response_code = try_to_put(key, value_)
+            # Replication here as well
+            replicate(Command.PUT, key, value_)
     else:  # There is no nodes in the network"
-        response_code = try_to_put(key, value)
+        response_code = try_to_put(key, value_)
+        # No replications then!
     return response_code
 
 
@@ -61,9 +66,10 @@ def off_load_remove(key):
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
             wireObj.send_request(Command.REMOVE, key, 0, "", successor)
-            response_code, value = wireObj.receive_reply()  # We are not sending the TA
-        else:
+            response_code, value_ = wireObj.receive_reply()  # We are not sending the TA
+        else:  # local
             response_code = try_to_remove(key)
+            replicate(Command.REMOVE, key)
     else:
         response_code = try_to_remove(key)
         if response_code != Response.SUCCESS:
@@ -77,41 +83,31 @@ class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
 
 class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        # data = self.request[0].strip()
-        # socket = self.request[1]
-        # print("{} wrote: ".format(self.client_address[0]))
-        # print(data)
-        # socket.sendto(data.upper(), self.client_address)
         cur_thread = threading.current_thread()
-
 
         # def receive_request():
         while True:
             command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, self, cur_thread)
             if command == Command.PUT:
-                # load balancing should be handled on the receiver side as well (Just for testing purposes
-                # if mode != Mode.testing:
-                #     response = try_to_put(key, value)
-                # else:  # testing mode
                 response = off_load_put(key, value)
+                wireObj.send_reply(sender_addr, key, response, 0, "")
 
+            elif command == Command.REPLICATE_PUT:
+                response = try_to_put(key, value)
                 wireObj.send_reply(sender_addr, key, response, 0, "")
 
             elif command == Command.GET:
-                # if mode != Mode.testing:
-                #     response, value_to_send = try_to_get(key)
-                # else:  # testing mode
                 response, value = off_load_get(key)
                 value_to_send = value
 
                 wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
-            #
-            elif command == Command.REMOVE:
-                # if mode != Mode.testing:
-                #     response = try_to_remove(key)
-                # else:  # testing mode
-                response = off_load_remove(key)
 
+            elif command == Command.REMOVE:
+                response = off_load_remove(key)
+                wireObj.send_reply(sender_addr, key, response, 0, "")
+
+            elif command == Command.REPLICATE_REMOVE:
+                response = try_to_remove(key)
                 wireObj.send_reply(sender_addr, key, response, 0, "")
 
             elif command == Command.SHUTDOWN:
@@ -204,6 +200,51 @@ def try_to_put(key, value):
     return response
 
 
+def replicate(command, key, value=""):
+    print "replicating: "
+    if command == Command.PUT:
+        # put on the next three nodes
+        successor = nodeCommunicationObj.successor(int(hashedKeyModN))
+        if successor != -2:
+            # Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
+            # if successor != int(hashedKeyModN):  # not the local node
+            #     print "It seems an observer send the msg .. replicate at: " + str(successor)
+            #     next_to_send = successor
+            #     for x in range(0, number_of_successors):
+            #         wireObj.send_request(Command.REPLICATE_PUT, key, len(value), value, next_to_send)
+            #         response_code, value = wireObj.receive_reply()
+            #         next_to_send = next_node(next_to_send)
+            # else:  # local
+            #     print "Local node; replicate"
+            next_to_send = successor
+            for x in range(0, number_of_successors):
+                wireObj.send_request(Command.REPLICATE_PUT, key, len(value), value, next_to_send)
+                response_code, value = wireObj.receive_reply()
+                next_to_send = next_node(next_to_send)
+        else:  # There is no nodes in the network"
+            print "No successor found 1"
+            # No replications then!
+    elif command == Command.REMOVE:
+        # remove on the next three nodes
+        successor = nodeCommunicationObj.successor(int(hashedKeyModN))
+        if successor != -2:
+            next_to_send = successor
+            for x in range(0, number_of_successors):
+                wireObj.send_request(Command.REPLICATE_REMOVE, key, len(value), value, next_to_send)
+                response_code, value = wireObj.receive_reply()
+                next_to_send = next_node(next_to_send)
+        else:  # There is no nodes in the network"
+            print "No successor found 2"
+            # No replications then!
+
+
+def next_node(x):
+    if x - 1 < 0:
+        return int(N) - 1
+    else:
+        return (x - 1) % int(N)
+
+
 def user_input():
     while True:
         print "\nmain$ [node_id:" + str(hashedKeyModN) + "] Please Enter one of the following:" + "\n" +\
@@ -221,6 +262,7 @@ def user_input():
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code, value = try_to_get(key)
+                # replicate(Command.GET, key)
             else:  # Not local
                 response_code, value = off_load_get(key)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
@@ -230,6 +272,8 @@ def user_input():
             value = raw_input('Main$ Please enter the value>')
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_put(key, value)
+                # Replication should be here: up to three nodes and that is it
+                replicate(Command.PUT, key, value)
             else:
                 response_code = off_load_put(key, value)
             Print.print_("Response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
@@ -239,6 +283,8 @@ def user_input():
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_remove(key)
+                # replicate(Command.REMOVE, key)
+                replicate(Command.REMOVE, key)
             else:
                 response_code = off_load_remove(key)
             Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
@@ -306,9 +352,8 @@ if __name__ == "__main__":
     N = args[1]
     mode = ""
     Print.debug = True
-    # if len(args) > 3:
-    #     hashedKeyModN = args[2]
-    #     mode = Mode.testing
+    number_of_successors = int(math.floor(math.log(int(N))))
+
     if len(args) > 2:
         hashedKeyModN = args[2]
         mode = Mode.local
@@ -325,7 +370,7 @@ if __name__ == "__main__":
     kvTable = ring.Ring()
     wireObj = wire.Wire(int(N), hashedKeyModN, mode)
 
-    nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N), mode)
+    nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N), mode, number_of_successors)
 
     # receiveThread = threading.Thread(target=receive_request)
     # receiveThread.start()
@@ -335,9 +380,9 @@ if __name__ == "__main__":
     udp_thread.start()
     # print("UDP serving at port", ip_port[1])
 
-    nodeCommunicationObj.join(int(hashedKeyModN)) # call joining procedure
+    nodeCommunicationObj.join(int(hashedKeyModN))  # call joining procedure
 
-    time.sleep(2)
+    time.sleep(1.5)
 
     userInputThread = threading.Thread(target=user_input)
     userInputThread.start()

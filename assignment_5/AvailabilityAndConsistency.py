@@ -6,13 +6,16 @@ import Response
 import Colors
 import Print
 
+
 class NodeCommunication:
     numberOfNodes = 0
     mode = ""
+    number_of_successors = -1
 
-    def __init__(self, numberOfNodes, mode):
+    def __init__(self, numberOfNodes, mode, number_of_successors):
         self.numberOfNodes = numberOfNodes
         self.mode = mode
+        self.number_of_successors = number_of_successors
 
     # Given a key, the local nodeID of the first alive node is returned
     # Unless if it is a key the belongs to the local nodeID then return the local node id
@@ -59,12 +62,12 @@ class NodeCommunication:
                     else:
                         cursor = (cursor - 1) % self.numberOfNodes
 
-                    # stop after 3 nodes apart distance
+                    # stop after self.number_of_successors nodes apart distance
                     if int(localNode) > cursor:
-                        if int(localNode) - cursor > 3:
+                        if int(localNode) - cursor > self.number_of_successors:
                             return -2
                             break
-                    elif (self.numberOfNodes - cursor) + int(localNode) > 3:
+                    elif (self.numberOfNodes - cursor) + int(localNode) > self.number_of_successors:
                             return -2
                             break
                     # Stop if you have looped back around to the original cursor
@@ -78,6 +81,12 @@ class NodeCommunication:
             except:
                 raise
         return -2
+
+    def next(self, x):
+        if x - 1 < 0:
+            return self.numberOfNodes - 1
+        else:
+            return (x - 1) % self.numberOfNodes
 
     # Given a node_id return the first alive successor
     def successor(self, localNode):

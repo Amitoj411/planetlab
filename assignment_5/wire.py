@@ -29,7 +29,7 @@ class Wire:
     def send_request(self, command, key, value_length, value, node_overwrite, timeout=.1):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
-        if command == Command.PUT or command == Command.JOIN:
+        if command == Command.PUT or command == Command.JOIN or command == Command.REPLICATE_PUT:
             fmt += str(value_length) + 's'
             msg = struct.pack(fmt, command, key, value_length, value)                #Packing value as an Int
         else:  # other commands
@@ -70,7 +70,7 @@ class Wire:
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
             # print Colors.Colors.OKGREEN  +"receive_request command:" + str(command)
-            if command == 0x01 or command == 0x20: #PUT or JOIN
+            if command == 0x01 or command == 0x20 or command == Command.REPLICATE_PUT: #PUT or JOIN
                 value_fmt = str(value_length) + 's'
                 # print Colors.Colors.OKGREEN  +"command:" + self.print_command(command) + \
                 #  ", key: " + key + ", value_length: " + str(value_length)

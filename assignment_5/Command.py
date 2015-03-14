@@ -6,8 +6,9 @@ REMOVE = 0x03
 SHUTDOWN = 0x04
 JOIN = 0x20
 PING = 0x21
-JOIN_FIN = 0x22
-
+# JOIN_FIN = 0x22
+REPLICATE_PUT = 0x22
+REPLICATE_REMOVE = 0x23
 
 def print_command(x):
     if x == 0x01:
@@ -23,7 +24,9 @@ def print_command(x):
     elif x == 0x21:
         return "PING"
     elif x == 0x22:
-        return "JOIN_FIN"
+        return "REPLICATE_PUT"
+    elif x == 0x23:
+        return "REPLICATE_REMOVE"
     else:
         return "UNRECOGNIZED"
 
