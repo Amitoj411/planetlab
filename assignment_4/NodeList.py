@@ -48,9 +48,13 @@ def get_hostnmae():
     s.close()
     return result
 
-def get_ip_address():
+def get_ip_address(hostname=""):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(('google.com', 0))
-    result = s.getsockname()[0]
+    if hostname == "":
+        result = s.getsockname()[0]
+    else:
+        result = socket.gethostbyname(hostname)
     s.close()
     return result
+

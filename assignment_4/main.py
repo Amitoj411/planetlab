@@ -1,3 +1,4 @@
+from __future__ import with_statement # 2.5 only
 __author__ = 'Owner'
 import ring
 import wire
@@ -15,6 +16,7 @@ import Print
 # import sys
 import Exceptions
 import SocketServer
+import NodeList
 
 def off_load_get(key):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
@@ -79,8 +81,7 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
         # print("{} wrote: ".format(self.client_address[0]))
         # print(data)
         # socket.sendto(data.upper(), self.client_address)
-        cur_thread = threading.current_thread()
-
+        cur_thread = threading.currentThread()
 
         # def receive_request():
         while True:
@@ -324,14 +325,19 @@ if __name__ == "__main__":
     # receiveThread = threading.Thread(target=receive_request)
     # receiveThread.start()
     ip_port = NodeList.look_up_node_id(hashedKeyModN, mode)
-    udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    if mode == Mode.planetLab:
+        udp_server = ThreadedUDPServer((NodeList.get_ip_address(ip_port.split(':')[0]),
+                                        int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    else:
+        udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
     udp_thread = threading.Thread(target=udp_server.serve_forever)
     udp_thread.start()
     # print("UDP serving at port", ip_port[1])
 
     nodeCommunicationObj.join(int(hashedKeyModN)) # call joining procedure
 
-    time.sleep(2)
+    time.sleep(1.5)
 
-    userInputThread = threading.Thread(target=user_input)
-    userInputThread.start()
+    if mode != Mode.planetLab:
+        userInputThread = threading.Thread(target=user_input)
+        userInputThread.start()

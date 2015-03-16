@@ -1,4 +1,5 @@
-__author__ = 'Owner'
+`
+# __author__ = 'Owner'
 import ring
 import wire
 import getopt
@@ -16,7 +17,7 @@ import Print
 import Exceptions
 import SocketServer
 import math
-
+import NodeList
 
 lock = threading.RLock()
 
@@ -375,7 +376,11 @@ if __name__ == "__main__":
     # receiveThread = threading.Thread(target=receive_request)
     # receiveThread.start()
     ip_port = NodeList.look_up_node_id(hashedKeyModN, mode)
-    udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    if mode == Mode.planetLab:
+        udp_server = ThreadedUDPServer((NodeList.get_ip_address(ip_port.split(':')[0]),
+                                        int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    else:
+        udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
     udp_thread = threading.Thread(target=udp_server.serve_forever)
     udp_thread.start()
     # print("UDP serving at port", ip_port[1])

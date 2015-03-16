@@ -7,7 +7,7 @@ AvailabilityAndConsistency = 02
 Wire = 03
 RequestReplyClient = 04
 
-debug = False
+debug = True
 
 
 def print_(string, mode, node_id, cur_thread="_"):
@@ -16,7 +16,7 @@ def print_(string, mode, node_id, cur_thread="_"):
         if cur_thread == "_":
             thread = "_"
         else:
-            thread = cur_thread.name
+            thread = cur_thread.getName()
 
         if mode == Main:
             print thread + "$main$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC

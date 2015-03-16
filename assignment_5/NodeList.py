@@ -25,7 +25,7 @@ def look_up_node_id(hashedKeyMod, mode):  # (i.e.) if key=apple (node 0) return 
 
 # For planet lab mode only
 # we only use it get the node id in planet lab mode initially instead of entering it as a SHELL argument
-def look_up_ip_address():  # (i.e.) given the local IP return the ip:port
+def look_up_ip_address():  # (i.e.) given the hostname return the ip:port
     _file = open(fname_planet_lab, 'rU')
     nodes = _file.readlines()
 
@@ -48,9 +48,12 @@ def get_hostnmae():
     s.close()
     return result
 
-def get_ip_address():
+def get_ip_address(hostname=""):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(('google.com', 0))
-    result = s.getsockname()[0]
+    if hostname == "":
+        result = s.getsockname()[0]
+    else:
+        result = socket.gethostbyname(hostname)
     s.close()
     return result

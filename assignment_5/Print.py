@@ -7,7 +7,7 @@ AvailabilityAndConsistency = 02
 Wire = 03
 RequestReplyClient = 04
 
-debug = False
+debug = True
 
 
 def print_(string, mode, node_id, cur_thread="_"):

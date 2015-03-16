@@ -8,7 +8,7 @@ from Response import print_response
 
 if __name__ == "__main__":
     kvTable = ring.Ring()
-    wireObj = wire.Wire(3, 1, Mode.testing)
+    wireObj = wire.Wire(3, 0, Mode.local)
 
     value_to_send = "Any......."
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     for seed in range(0, 15):  # Arbitrary 15 msgs sent
         print "seed:" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, 1)  # send to node 0
+        wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, 0)  # send to node 0
         response_code, value = wireObj.receive_reply()
         print print_response(response_code)
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     for seed in range(14, -1, -1):  # Arbitrary 14 msgs sent
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, 1)  # send to node 0
+        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, 0)  # send to node 0
         response_code, value = wireObj.receive_reply()
         print print_response(response_code)
 
