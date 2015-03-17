@@ -5,8 +5,19 @@ __author__ = 'Owner'
 # import binascii
 # import struct
 import array
-
 import udpSendRecieve
+import ServerCache
+
+
+class Message:
+    ip = ""
+    port = ""
+    msg = ""
+
+    def __init__(self, ip, port, msg):
+        self.ip = ip
+        self.port = port
+        self.msg = msg
 
 
 class RequestReplyServer:
@@ -18,6 +29,7 @@ class RequestReplyServer:
     # udp_port = ""
     # message = ""
     # local_port = ""
+    cache = ServerCache.ServerCache()
 
     def __init__(self, timeout):
         # self.udp_ip = udp_ip
@@ -25,26 +37,38 @@ class RequestReplyServer:
         # self.message = message
         # self.local_port = local_port
         self.timeout = timeout
+        self.cache.clean()
 
     def send(self, udp_ip, udp_port, message):
         # Prepare the header as A1
         # print "self.unique_request_id(Server):" + self.unique_request_id
+
+        # Add to the server cache
+        msgObj = Message(udp_ip, udp_port, message)
+        self.cache.put(self.unique_request_id, msgObj)
+
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
     def receive(self, udp_port, handler, cur_thread):
         while True:
             data, addr = self.udp_obj.receive(udp_port, self.timeout, handler, cur_thread)
 
-
-            received_header = data[0:16]
             # print "data:" + data + ", data length:" + str(len(data)) +\
             #       ",received_header:" + received_header +\
             #       ", length(received_header):" + str(len(received_header))
 
-            self.unique_request_id = received_header
+            received_header = data[0:16]
             data = data[16:]
+            # Check the server cache before replying back to the client
+            if self.cache.get(received_header) is None:  # msg Does not exist in the cache
+                self.unique_request_id = received_header
+                return received_header, data, addr
+            else:  # duplicate msgs
+                msgObj = self.cache.get(received_header)
+                self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
+                continue
 
-            return received_header, data, addr
+
 
 
 

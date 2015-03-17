@@ -12,12 +12,14 @@ class UDPNetwork:
         #                      socket.SOCK_DGRAM)  # UDP
         if RP_mode == "server":
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  #UDP  # Internet
-            sock.sendto(message, (udp_ip, int(udp_port)))
-            # sock.close()
+            try:
+                sock.sendto(message, (udp_ip, int(udp_port)))
+            finally:
+                sock.close()
         else:
             self.send_socket.sendto(message, (udp_ip, int(udp_port)))
 
-    # Just for the sender
+    # Just for the receiver
     def reply(self, timeout):
         self.send_socket.settimeout(timeout)  # 100 ms be default
         while True:

@@ -33,7 +33,11 @@ class RequestReplyClient:
         # Prepare the header as A1
         # self.unique_request_id = bytearray(16)
         self.unique_request_id = socket.inet_aton(socket.gethostbyname(socket.gethostname())) +  \
-                                 struct.pack("QHH", int(time.strftime("%M")), int(self.local_port), random.randint(0,10))
+                                 struct.pack("QHH",
+                                             # int(time.strftime("%M")),
+                                             int(time.time() * 1000 % 1000),
+                                             int(self.local_port),
+                                             random.randint(0, 10))
         # print  Colors.Colors.WARNING + "RequestReplyClient$ len(unique_request_id) : " + \
         #        str(len(self.unique_request_id)) + Colors.Colors.ENDC
 
@@ -70,7 +74,7 @@ class RequestReplyClient:
         # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id+ self.message)
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
 
-    def receive_reply(self, local_node_id):
+    def receive_reply(self, local_node_id, cur_thread):
         resend_counter = 1
         timeout = self.timeout
         while resend_counter <= 3:
@@ -96,8 +100,10 @@ class RequestReplyClient:
                 resend_counter += 1
                 timeout *= 2
                 Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
-                      "s. Sending again, trail: " + str(resend_counter), Print.RequestReplyClient, local_node_id)
-                self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
+                      "s. Sending again, trail: " + str(resend_counter),
+                             Print.RequestReplyClient, local_node_id, cur_thread)
+                self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
+                                  "client")
                 # print "socket.error: " + str(socket.error)
 
         return -1

@@ -10,21 +10,20 @@ import Response
 import os
 import AvailabilityAndConsistency
 import time
-import NodeList
 import Mode
 import Print
-# import sys
 import Exceptions
 import SocketServer
 import NodeList
+
 
 def off_load_get(key):
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
     if successor != -2:
         # Print.print_ "The Key Doesn't exist on the network, will return current node"
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.GET, key, 0, "", successor)
-            response_code, value = wireObj.receive_reply()  # We are not sending the TA
+            wireObj.send_request(Command.GET, key, 0, "", threading.currentThread(), successor)
+            response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
             value = value[0]
             if response_code == Response.SUCCESS: Print.print_("Value:" + str(value),
                                                                Print.Main, hashedKeyModN)
@@ -41,12 +40,13 @@ def off_load_get(key):
 
 
 def off_load_put(key, value):
+    print("off_load_put {}".format(key))
     successor = nodeCommunicationObj.search(key, hashedKeyModN)
     if successor != -2:
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.PUT, key, len(value), value, successor)
-            response_code, value = wireObj.receive_reply()  # We are sending the TA!
+            wireObj.send_request(Command.PUT, key, len(value), value, threading.currentThread(), successor)
+            response_code, value = wireObj.receive_reply(threading.currentThread())  # We are sending the TA!
         else:  # local
             response_code = try_to_put(key, value)
     else:  # There is no nodes in the network"
@@ -59,8 +59,8 @@ def off_load_remove(key):
     if successor != -2:
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.REMOVE, key, 0, "", successor)
-            response_code, value = wireObj.receive_reply()  # We are not sending the TA
+            wireObj.send_request(Command.REMOVE, key, 0, "", threading.currentThread(), successor)
+            response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
         else:
             response_code = try_to_remove(key)
     else:
@@ -93,7 +93,7 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
                 # else:  # testing mode
                 response = off_load_put(key, value)
 
-                wireObj.send_reply(sender_addr, key, response, 0, "")
+                wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread)
 
             elif command == Command.GET:
                 # if mode != Mode.testing:
@@ -102,7 +102,7 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
                 response, value = off_load_get(key)
                 value_to_send = value
 
-                wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send)
+                wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread)
             #
             elif command == Command.REMOVE:
                 # if mode != Mode.testing:
@@ -110,21 +110,21 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
                 # else:  # testing mode
                 response = off_load_remove(key)
 
-                wireObj.send_reply(sender_addr, key, response, 0, "")
+                wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread)
 
             elif command == Command.SHUTDOWN:
                 response = Response.SUCCESS
-                wireObj.send_reply(sender_addr, key, response, 0, "")
+                wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread)
                 os._exit(10)
 
             elif command == Command.PING:
                 response = Response.SUCCESS
                 value = "Alive!"
-                wireObj.send_reply(sender_addr, key, response, len(value), value)
+                wireObj.send_reply(sender_addr, key, response, len(value), value, cur_thread)
 
             elif command == Command.JOIN:
                 join_id = int(value)
-                wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "")  # For th join
+                wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "", cur_thread)  # For th join
                 keys_to_be_deleted = []
                 for key in kvTable.hashTable:
                     if hash(key) % int(N) == join_id \
@@ -133,8 +133,9 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
                             # space between the joined node and the received node
 
                         key_value = kvTable.hashTable[key]
-                        wireObj.send_request(Command.PUT, key, len(key_value), key_value, join_id)
-                        response_code, value = wireObj.receive_reply()
+                        wireObj.send_request(Command.PUT, key, len(key_value), key_value,
+                                             threading.currentThread(), join_id)
+                        response_code, value = wireObj.receive_reply(threading.currentThread())
                         if response_code == Response.SUCCESS:
                             keys_to_be_deleted.append(key)
                         else:
@@ -145,7 +146,7 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
 
             else:
                 response = Response.UNRECOGNIZED
-                wireObj.send_reply(sender_addr, key, response, 0, "")
+                wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread)
 
 
 def try_to_get(key):
@@ -206,7 +207,7 @@ def user_input():
               "     2- Get a value for a key (KV[key]):            6- Shutdown a node by (key/node_id):" + "\n" + \
               "     3- Put a value for a key (KV[key]=value):      7- Ping a node by (key/node_id):" + "\n" + \
               "     4- Remove a key from KV):                      8- Turn debugging msgs ON/OFF" + "\n" + \
-              "     9- Exit"
+              "     9- Print ServerCache                           Other- Exit"
 
         nb = raw_input('>')
         if nb == "1":
@@ -250,8 +251,8 @@ def user_input():
                     os._exit(10)
                     response_code = Response.SUCCESS
                 else:
-                    wireObj.send_request(Command.SHUTDOWN, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
+                    wireObj.send_request(Command.SHUTDOWN, key, 0, "", threading.currentThread(), -1)
+                    response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code),
                              Print.Main, hashedKeyModN)
             else:
@@ -260,8 +261,8 @@ def user_input():
                     os._exit(10)
                     response_code = Response.SUCCESS
                 else:
-                    wireObj.send_request(Command.SHUTDOWN, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
+                    wireObj.send_request(Command.SHUTDOWN, "AnyKey", 0, "", threading.currentThread(), node_id)
+                    response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
         elif nb == "7":   # Ping
             option = raw_input('Main$ Ping by key (y/n)?>')
@@ -272,8 +273,8 @@ def user_input():
                     value = ("Alive!",)
                     response_code = Response.SUCCESS
                 else:
-                    wireObj.send_request(Command.PING, key, 0, "", -1)
-                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
+                    wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), -1)
+                    response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
             else:
@@ -282,8 +283,8 @@ def user_input():
                     value = ("Alive!",)
                     response_code = Response.SUCCESS
                 else:
-                    wireObj.send_request(Command.PING, "AnyKey", 0, "", node_id)
-                    response_code, value = wireObj.receive_reply()  # We are not sending the TA
+                    wireObj.send_request(Command.PING, "AnyKey", 0, "", threading.currentThread(), node_id)
+                    response_code, value = wireObj.receive_reply(threading.currentThread())  # We are not sending the TA
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
         elif nb == "8":   # Toggle debugging
@@ -291,6 +292,8 @@ def user_input():
                 Print.debug = False
             else:
                 Print.debug = True
+        elif nb == "9":   # Print ServerCache
+            wireObj.RequestReplyServer_obj.cache._print()
         else:
             # sys.exit("Exit normally.")
             os._exit(10)
@@ -301,16 +304,14 @@ if __name__ == "__main__":
     N = args[1]
     mode = ""
     Print.debug = True
-    # if len(args) > 3:
-    #     hashedKeyModN = args[2]
-    #     mode = Mode.testing
     if len(args) > 2:
         hashedKeyModN = args[2]
         mode = Mode.local
     else:  # planetLab mode
         hashedKeyModN = NodeList.look_up_ip_address()
         if hashedKeyModN == -1:
-                Print.print_("The local node ip address is not the node_list_planetLab.txt file", Print.Main, hashedKeyModN)
+                Print.print_("The local node ip address is not the node_list_planetLab.txt file",
+                             Print.Main, hashedKeyModN)
                 os._exit(-1)
         else:
             mode = Mode.planetLab

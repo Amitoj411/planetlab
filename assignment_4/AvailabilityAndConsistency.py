@@ -3,8 +3,9 @@ import wire
 
 import Command
 import Response
-import Colors
 import Print
+import threading
+
 
 class NodeCommunication:
     numberOfNodes = 0
@@ -46,8 +47,8 @@ class NodeCommunication:
 
                 # Try to contact the cursor
                 wireObj = wire.Wire(self.numberOfNodes, localNode, self.mode) ####### BUGGGGGGGGGGGGGGGG
-                wireObj.send_request(Command.PING, key, 0, "", cursor)
-                response_code, value = wireObj.receive_reply() # not replying to the TA
+                wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), cursor)
+                response_code, value = wireObj.receive_reply(threading.currentThread())  # not replying to the TA
                 Print.print_("Searched for node "+ str(cursor) \
                     + " and received response: "+ Response.print_response(response_code) + "\n",
                              Print.AvailabilityAndConsistency, localNode)
@@ -109,9 +110,9 @@ class NodeCommunication:
                 # Echo-reply
                 wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode)
                 Print.print_("Searching for Node:  " + \
-                             str(cursor) , Print.AvailabilityAndConsistency, localNode)
-                wire_obj.send_request(Command.PING, "Anykey", 0, "", cursor)
-                response_code, value = wire_obj.receive_reply()  # Not sending back to the TA
+                             str(cursor), Print.AvailabilityAndConsistency, localNode)
+                wire_obj.send_request(Command.PING, "Anykey", 0, "", threading.currentThread(), cursor)
+                response_code, value = wire_obj.receive_reply(threading.currentThread())  # Not sending back to the TA
                 # print "Response: "+ Response.print_response(response_code)
 
                 # If time-out continue, else stop
@@ -134,8 +135,9 @@ class NodeCommunication:
             Print.print_("successor found: "+ str(successor) + "\n"
                          ,Print.AvailabilityAndConsistency, localNode)
             wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode) # BUGGGGGGGGGGGGGGGGGGGGG
-            wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode), successor)
-            response_code, value = wire_obj.receive_reply() # Not replying to the TA
+            wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode)
+                                  , threading.currentThread(), successor)
+            response_code, value = wire_obj.receive_reply(threading.currentThread()) # Not replying to the TA
         elif successor == -2:
             print "stopped after three searches"
 

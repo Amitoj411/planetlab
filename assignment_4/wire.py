@@ -26,7 +26,7 @@ class Wire:
         self.mode = mode
         # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
-    def send_request(self, command, key, value_length, value, node_overwrite, timeout=.1):
+    def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
         if command == Command.PUT or command == Command.JOIN:
@@ -42,17 +42,13 @@ class Wire:
             + str(value_length)  \
             + ", value: " + str(value) \
             + ", node id: " + str(node_overwrite) \
-            , Print.Wire, self.hashedKeyModN)
+            , Print.Wire, self.hashedKeyModN, cur_thread)
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
             ip_port = NodeList.look_up_node_id(hash(key) % self.numberOfNodes, self.mode)
-            # print Colors.Colors.OKGREEN  +"node_overwrite DISABLED and ip_port is: " + str(ip_port) + \
-            # "  Message: " + str(msg)
         else:  # Get it by node id
             ip_port = NodeList.look_up_node_id(node_overwrite, self.mode)
-            # print Colors.Colors.OKGREEN  +"node_overwrite ENABLED " + str(node_overwrite) + \
-            # ", ip_port: " + str(ip_port) + ", Message: " + str(msg)
 
         local_ip_port = NodeList.look_up_node_id(self.hashedKeyModN, self.mode)
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
@@ -98,7 +94,7 @@ class Wire:
         value = value[0]
         return command, key, value_length, value , addr
 
-    def send_reply(self, sender_addr, key, response_code, value_length, value):
+    def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         Print.print_(
             "send_reply$ " + str(sender_addr) +
@@ -107,7 +103,7 @@ class Wire:
             ", value length: " + str(value_length) +
             ", mode: " +
             Mode.print_mode(self.mode) +
-            "\n", Print.Wire, self.hashedKeyModN)
+            "\n", Print.Wire, self.hashedKeyModN, cur_thread)
 
 
         fmt = self.fmtReply
@@ -118,10 +114,10 @@ class Wire:
         # else:
             # self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
 
-    def receive_reply(self):
+    def receive_reply(self, cur_thread):
         # if self.mode == Mode.testing:
         # request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1], self.hashedKeyModN)
-        request_reply_response = self.RequestReplyClient_obj.receive_reply(self.hashedKeyModN)
+        request_reply_response = self.RequestReplyClient_obj.receive_reply(self.hashedKeyModN, cur_thread)
         # else:
         #     request_reply_response = self.RequestReplyClient_obj.receive(44444, self.hashedKeyModN)
 
@@ -143,7 +139,7 @@ class Wire:
         Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
             ", value:" + str(value) + \
             ", mode: " + Mode.print_mode(self.mode) + "\n"\
-            , Print.Wire, self.hashedKeyModN)
+            , Print.Wire, self.hashedKeyModN, cur_thread)
             
         return response_code, value
 
