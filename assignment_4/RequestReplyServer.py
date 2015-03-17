@@ -6,8 +6,8 @@ __author__ = 'Owner'
 # import struct
 import array
 import udpSendRecieve
-import ServerCache
-
+import HashTable
+import Print
 
 class Message:
     ip = ""
@@ -29,7 +29,7 @@ class RequestReplyServer:
     # udp_port = ""
     # message = ""
     # local_port = ""
-    cache = ServerCache.ServerCache()
+    cache = HashTable.HashTable("ServerCache")
 
     def __init__(self, timeout):
         # self.udp_ip = udp_ip
@@ -49,7 +49,7 @@ class RequestReplyServer:
 
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
-    def receive(self, udp_port, handler, cur_thread):
+    def receive(self, udp_port, handler, cur_thread, local_node_id):
         while True:
             data, addr = self.udp_obj.receive(udp_port, self.timeout, handler, cur_thread)
 
@@ -64,8 +64,14 @@ class RequestReplyServer:
                 self.unique_request_id = received_header
                 return received_header, data, addr
             else:  # duplicate msgs
+                # send the reply again
                 msgObj = self.cache.get(received_header)
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
+                Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, " ,
+                             Print.RequestReplyClient, local_node_id, cur_thread)
+
+                # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
+                #               "client")
                 continue
 
 

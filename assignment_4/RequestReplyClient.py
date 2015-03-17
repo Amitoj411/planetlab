@@ -13,7 +13,7 @@ import Print
 
 class RequestReplyClient:
     udp_obj = udpSendRecieve.UDPNetwork()
-    timeout = 2  # 100 ms by default unless changed by constructor
+    timeout = .1  # 100 ms by default unless changed by constructor
     # For retransmission
     unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
     # unique_request_id = []# last id was send. Used to match the most recent received one
@@ -21,13 +21,15 @@ class RequestReplyClient:
     udp_port = ""
     message = ""
     local_port = ""
+    retrials = 3
 
-    def __init__(self, udp_ip, udp_port, message, local_port, timeout):
+    def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials):
         self.udp_ip = udp_ip
         self.udp_port = udp_port
         self.message = message
         self.local_port = local_port
         self.timeout = timeout
+        self.retrials = retrials
 
     def send(self):
         # Prepare the header as A1
@@ -77,34 +79,34 @@ class RequestReplyClient:
     def receive_reply(self, local_node_id, cur_thread):
         resend_counter = 1
         timeout = self.timeout
-        while resend_counter <= 3:
-            try:
-                data, addr = self.udp_obj.reply(timeout)
-                received_header = data[0:16]
-                payload = data[16:]
-                # print "data:" + data
-                # print "unique_request_id:" + self.unique_request_id
-                # print "received_header:" + received_header +\
-                #       ", payload:" + payload +\
-                #       ", length:" + str(len(received_header))
 
-                # print Colors.Colors.WARNING \
-                #     + "RequestReplyClient$: " \
-                #     + ", Unique ID: " + str(self.unique_request_id) \
-                #     + ", received_header: " + str(received_header) \
-                #     + Colors.Colors.ENDC
+        try:
+            data, addr = self.udp_obj.reply(timeout)
+            received_header = data[0:16]
+            payload = data[16:]
+            # print "data:" + data
+            # print "unique_request_id:" + self.unique_request_id
+            # print "received_header:" + received_header +\
+            #       ", payload:" + payload +\
+            #       ", length:" + str(len(received_header))
 
-                if self.unique_request_id == received_header:
-                    return payload
-            except socket.error:
+            # print Colors.Colors.WARNING \
+            #     + "RequestReplyClient$: " \
+            #     + ", Unique ID: " + str(self.unique_request_id) \
+            #     + ", received_header: " + str(received_header) \
+            #     + Colors.Colors.ENDC
+
+            if self.unique_request_id == received_header:
+                return payload
+        except socket.error:
+            while resend_counter <= self.retrials:
                 resend_counter += 1
                 timeout *= 2
                 Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
                       "s. Sending again, trail: " + str(resend_counter),
                              Print.RequestReplyClient, local_node_id, cur_thread)
                 self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
-                                  "client")
-                # print "socket.error: " + str(socket.error)
+                              "client")
 
         return -1
 

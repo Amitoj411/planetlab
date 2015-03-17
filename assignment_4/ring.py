@@ -1,4 +1,5 @@
 __author__ = 'Owner'
+# To be deleted
 
 class Ring:
     __element1 = 123

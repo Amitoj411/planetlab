@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
         wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send,
                              threading.currentThread(), node_id)  # send to node 0
-        response_code, value = wireObj.receive_reply(threading.currentThread())
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print_response(response_code)
 
         node_id += 1

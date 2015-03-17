@@ -21,5 +21,5 @@ if __name__ == "__main__":
         x += 1
         wireObj.send_request(Command.PUT, str(key), len(value_to_send), value_to_send
                              , threading.currentThread(), 0)  # send to node 0
-        response_code, value = wireObj.receive_reply(threading.currentThread())
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print_response(response_code)

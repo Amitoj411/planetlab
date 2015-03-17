@@ -26,7 +26,7 @@ class Wire:
         self.mode = mode
         # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
-    def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1):
+    def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=3):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
         if command == Command.PUT or command == Command.JOIN:
@@ -36,13 +36,14 @@ class Wire:
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        Print.print_("send_request$ command:" + Command.print_command(command) \
-            + ", key: " + key \
-            + ", value_length: " \
-            + str(value_length)  \
-            + ", value: " + str(value) \
-            + ", node id: " + str(node_overwrite) \
-            , Print.Wire, self.hashedKeyModN, cur_thread)
+        if command != Command.ALIVE:
+            Print.print_("send_request$ command:" + Command.print_command(command) \
+                + ", key: " + key \
+                + ", value_length: " \
+                + str(value_length)  \
+                + ", value: " + str(value) \
+                + ", node id: " + str(node_overwrite) \
+                , Print.Wire, self.hashedKeyModN, cur_thread)
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
@@ -55,13 +56,14 @@ class Wire:
                                                                             ip_port.split(':')[1],
                                                                             msg,
                                                                             local_ip_port.split(':')[1],
-                                                                            timeout)
+                                                                            timeout,
+                                                                            retrials)
 
         self.RequestReplyClient_obj.send()
 
     def receive_request(self, hashedKeyMod, handler, cur_thread):
         ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
-        header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1], handler, cur_thread)
+        header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1], handler, cur_thread, hashedKeyMod)
 
         try:
             command, key, value_length = struct.unpack(self.fmtRequest, msg[0:35])
@@ -74,18 +76,18 @@ class Wire:
                 value = struct.unpack(value_fmt, msg[35:35+value_length]) #Limit the max length of value to prevent buffer overflow attacks.
             else:  # Other commands
                 value = ("",)
-
-            Print.print_("receive_request$ "
-                + str(addr)
-                + ", Command Received:"
-                + Command.print_command(command)
-                + ", Key:"
-                + key
-                + ", Value: "
-                + value[0]
-                + ", Value Length: "
-                + str(value_length)
-                , Print.Wire, self.hashedKeyModN, cur_thread)
+            if command != Command.ALIVE:
+                Print.print_("receive_request$ "
+                    + str(addr)
+                    + ", Command Received:"
+                    + Command.print_command(command)
+                    + ", Key:"
+                    + key
+                    + ", Value: "
+                    + value[0]
+                    + ", Value Length: "
+                    + str(value_length)
+                    , Print.Wire, self.hashedKeyModN, cur_thread)
         except:
             raise
 
@@ -94,16 +96,17 @@ class Wire:
         value = value[0]
         return command, key, value_length, value , addr
 
-    def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread):
+    def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
-        Print.print_(
-            "send_reply$ " + str(sender_addr) +
-            ", response_code: " + Response.print_response(response_code) +
-            ", value: " + value +
-            ", value length: " + str(value_length) +
-            ", mode: " +
-            Mode.print_mode(self.mode) +
-            "\n", Print.Wire, self.hashedKeyModN, cur_thread)
+        if command != Command.ALIVE:
+            Print.print_(
+                "send_reply$ " + str(sender_addr) +
+                ", response_code: " + Response.print_response(response_code) +
+                ", value: " + value +
+                ", value length: " + str(value_length) +
+                ", mode: " +
+                Mode.print_mode(self.mode) +
+                "\n", Print.Wire, self.hashedKeyModN, cur_thread)
 
 
         fmt = self.fmtReply
@@ -114,7 +117,7 @@ class Wire:
         # else:
             # self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
 
-    def receive_reply(self, cur_thread):
+    def receive_reply(self, cur_thread, command):
         # if self.mode == Mode.testing:
         # request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1], self.hashedKeyModN)
         request_reply_response = self.RequestReplyClient_obj.receive_reply(self.hashedKeyModN, cur_thread)
@@ -136,10 +139,11 @@ class Wire:
             except:
                 raise
 
-        Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
-            ", value:" + str(value) + \
-            ", mode: " + Mode.print_mode(self.mode) + "\n"\
-            , Print.Wire, self.hashedKeyModN, cur_thread)
+        if command != Command.ALIVE:
+            Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
+                ", value:" + str(value) + \
+                ", mode: " + Mode.print_mode(self.mode) + "\n"\
+                , Print.Wire, self.hashedKeyModN, cur_thread)
             
         return response_code, value
 

@@ -25,7 +25,7 @@ if __name__ == "__main__":
         wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, 0,
                              threading.currentThread(), .4)  # send to 0
         # with timeout = .4
-        response_code, value = wireObj.receive_reply(threading.currentThread())
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print print_response(response_code)
 
         node_id += 1
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
         wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, 0,
                              threading.currentThread(), .4)  # send to node 0
-        response_code, value = wireObj.receive_reply(threading.currentThread())
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code)
 
         node_id -= 1

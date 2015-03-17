@@ -2,14 +2,18 @@ __author__ = 'Owner'
 import time
 import thread
 
-class ServerCache:
-    hashTable = {}   # creates an empty hash table (or 'dictionary')
 
+class HashTable:
+      # creates an empty hash table (or 'dictionary')
+    id = ""
 
-    #constructor
-    # def __init__(self,x,y):
+    # constructor
+    def __init__(self, id):
+        self.id = id
+        self.hashTable = {}
     #     self.x = x
     #     self.y = y
+
     def clean_once(self):
         while True:
             time.sleep(10) # clear it self each 10s
@@ -29,14 +33,17 @@ class ServerCache:
 
     def _print(self):
         print "     ##############"
-        print "     Cache[Key]: Value"
+        print("     {}[Key]: Value".format(self.id))
         print "     ##############"
         if len(self.hashTable.items()) == 0:
-            print "     Empty Cache"
+            print("     Empty {}".format(self.id))
         else:
             count = 1
             for key, value in self.hashTable.items():
-                print "     " + str(count) + "- Cache[" + str(key) + "]:" + value.msg      # prints each key-value pair.
+                if self.id == "ServerCache":
+                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + value.msg
+                else:
+                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(value)
                 count += 1
         print "     "
 
@@ -48,13 +55,13 @@ class ServerCache:
         except:
             raise
 
-    def size(self):
-        sum = 0
-
-        # lock
-        # TODO mutual exclusion is needed
-        for k, v in self.hashTable.iteritems():
-            sum = sum + len(v)
-        # un-lock
-
-        return sum
+    # def size(self):
+    #     sum = 0
+    #
+    #     # lock
+    #     # TODO mutual exclusion is needed
+    #     for k, v in self.hashTable.iteritems():
+    #         sum = sum + len(v)
+    #     # un-lock
+    #
+    #     return sum
