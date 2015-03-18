@@ -21,7 +21,7 @@ class RequestReplyClient:
     udp_port = ""
     message = ""
     local_port = ""
-    retrials = 3
+    retrials = 2
 
     def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials):
         self.udp_ip = udp_ip
@@ -34,80 +34,39 @@ class RequestReplyClient:
     def send(self):
         # Prepare the header as A1
         # self.unique_request_id = bytearray(16)
-        self.unique_request_id = socket.inet_aton(socket.gethostbyname(socket.gethostname())) +  \
+        self.unique_request_id = socket.inet_aton(socket.gethostbyname(socket.gethostname())) + \
                                  struct.pack("QHH",
-                                             # int(time.strftime("%M")),
-                                             int(time.time() * 1000 % 1000),
-                                             int(self.local_port),
-                                             random.randint(0, 10))
-        # print  Colors.Colors.WARNING + "RequestReplyClient$ len(unique_request_id) : " + \
-        #        str(len(self.unique_request_id)) + Colors.Colors.ENDC
+                                 # int(time.strftime("%M")),
+                                 int(time.time() * 1000 % 1000),
+                                 int(self.local_port),
+                                 random.randint(0, 10))
 
-
-        # ip = binascii.hexlify(
-        #     socket.inet_aton(socket.gethostbyname(socket.gethostname()))
-        # ).upper()
-        # port = binascii.hexlify(
-        #     struct.pack("H", int(self.local_port))
-        # ).upper()
-        # local_time = binascii.hexlify(
-        #     struct.pack("H", int(time.strftime("%M")))
-        # ).upper()
-
-        # ip = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
-        # port = struct.pack("H", int(self.local_port))
-        # local_time = struct.pack("Q", int(time.strftime("%M")))
-        # rand = struct.pack("H", random.randint(0,10))
-
-        # self.unique_request_id = ip + port + local_time
-        # self.unique_request_id.append(ip)
-        # self.unique_request_id.append(port)
-        # self.unique_request_id.append(local_time)
-        # self.unique_request_id.append(random)
-
-        # self.message = binascii.hexlify(
-        #     # map(hex, array("B", self.message))
-        #     self.message
-        # )
-        # print "self.message:" + self.message
-        # to_send = str(self.unique_request_id) + str(self.message)
-        # print "to send:" + to_send
-
-        # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id+ self.message)
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
 
     def receive_reply(self, local_node_id, cur_thread):
         resend_counter = 1
         timeout = self.timeout
-
-        try:
-            data, addr = self.udp_obj.reply(timeout)
-            received_header = data[0:16]
-            payload = data[16:]
-            # print "data:" + data
-            # print "unique_request_id:" + self.unique_request_id
-            # print "received_header:" + received_header +\
-            #       ", payload:" + payload +\
-            #       ", length:" + str(len(received_header))
-
-            # print Colors.Colors.WARNING \
-            #     + "RequestReplyClient$: " \
-            #     + ", Unique ID: " + str(self.unique_request_id) \
-            #     + ", received_header: " + str(received_header) \
-            #     + Colors.Colors.ENDC
-
-            if self.unique_request_id == received_header:
-                return payload
-        except socket.error:
-            while resend_counter <= self.retrials:
-                resend_counter += 1
-                timeout *= 2
-                Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
-                      "s. Sending again, trail: " + str(resend_counter),
-                             Print.RequestReplyClient, local_node_id, cur_thread)
-                self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
-                              "client")
-
+        while resend_counter <= self.retrials + 1:
+            try:
+                data, addr = self.udp_obj.reply(timeout)
+                received_header = data[0:16]
+                payload = data[16:]
+                # print "payload: " + payload
+                if self.unique_request_id == received_header:
+                    return payload
+                else:
+                    print "bad 16:" + received_header
+            except socket.error:
+                if self.retrials != 0:
+                    resend_counter += 1
+                    timeout *= 2
+                    Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
+                          "s. Sending again, trail: " + str(resend_counter),
+                                 Print.RequestReplyClient, local_node_id, cur_thread)
+                    self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
+                                  "client")
+                else:
+                    break
         return -1
 
 

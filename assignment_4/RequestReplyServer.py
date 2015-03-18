@@ -45,13 +45,13 @@ class RequestReplyServer:
 
         # Add to the server cache
         msgObj = Message(udp_ip, udp_port, message)
-        self.cache.put(self.unique_request_id, msgObj)
+        self.cache.put(str(self.unique_request_id), msgObj)
 
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
     def receive(self, udp_port, handler, cur_thread, local_node_id):
         while True:
-            data, addr = self.udp_obj.receive(udp_port, self.timeout, handler, cur_thread)
+            data, addr = self.udp_obj.receive(udp_port, self.timeout, cur_thread, handler)
 
             # print "data:" + data + ", data length:" + str(len(data)) +\
             #       ",received_header:" + received_header +\
@@ -60,14 +60,16 @@ class RequestReplyServer:
             received_header = data[0:16]
             data = data[16:]
             # Check the server cache before replying back to the client
-            if self.cache.get(received_header) is None:  # msg Does not exist in the cache
+            if self.cache.get(str(received_header)) is None:  # msg Does not exist in the cache
+
                 self.unique_request_id = received_header
                 return received_header, data, addr
             else:  # duplicate msgs
                 # send the reply again
-                msgObj = self.cache.get(received_header)
+                # print "self.cache.get(str(received_header)):" + str(self.cache.get(str(received_header)))
+                msgObj = self.cache.get(str(received_header))
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
-                Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, " ,
+                Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, ",
                              Print.RequestReplyClient, local_node_id, cur_thread)
 
                 # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,

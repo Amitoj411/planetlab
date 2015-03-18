@@ -26,7 +26,7 @@ class Wire:
         self.mode = mode
         # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
-    def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=3):
+    def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=2):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
         if command == Command.PUT or command == Command.JOIN:
@@ -61,7 +61,7 @@ class Wire:
 
         self.RequestReplyClient_obj.send()
 
-    def receive_request(self, hashedKeyMod, handler, cur_thread):
+    def receive_request(self, hashedKeyMod, cur_thread, handler=""):
         ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
         header, msg, addr = self.RequestReplyServer_obj.receive(ip_port.split(':')[1], handler, cur_thread, hashedKeyMod)
 
@@ -118,11 +118,7 @@ class Wire:
             # self.RequestReplyServer_obj.send(sender_addr[0], 44444, msg)
 
     def receive_reply(self, cur_thread, command):
-        # if self.mode == Mode.testing:
-        # request_reply_response = self.RequestReplyClient_obj.receive(sender_addr[1], self.hashedKeyModN)
         request_reply_response = self.RequestReplyClient_obj.receive_reply(self.hashedKeyModN, cur_thread)
-        # else:
-        #     request_reply_response = self.RequestReplyClient_obj.receive(44444, self.hashedKeyModN)
 
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY

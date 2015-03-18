@@ -84,22 +84,26 @@ def off_load_remove(key):
     return response_code
 
 
-class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
-        pass
+# class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
+#         pass
+#
+#
+# class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
+#     def handle(self):
+#         # data = self.request[0].strip()
+#         # socket = self.request[1]
+#         # print("{} wrote: ".format(self.client_address[0]))
+#         # print(data)
+#         # socket.sendto(data.upper(), self.client_address)
+#         cur_thread = threading.currentThread()
 
+# while True:
+#             command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, self, cur_thread)
 
-class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
-    def handle(self):
-        # data = self.request[0].strip()
-        # socket = self.request[1]
-        # print("{} wrote: ".format(self.client_address[0]))
-        # print(data)
-        # socket.sendto(data.upper(), self.client_address)
-        cur_thread = threading.currentThread()
-
-        # def receive_request():
+def receive_request():
         while True:
-            command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, self, cur_thread)
+            cur_thread = threading.currentThread()
+            command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, cur_thread)
             if command == Command.PUT:
                 response = off_load_put(key, value)
                 wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT)
@@ -204,7 +208,7 @@ def iAmAlive():
                     aliveNessTable.put(str(randomNode), 3)
                 else:
                     aliveNessTable.put(str(randomNode), aliveNessTable.get(str(randomNode)) + 1)
-        time.sleep(3)
+        time.sleep(2)
 
 
 def aliveNessCleaning():
@@ -219,15 +223,17 @@ def aliveNessCleaning():
                 aliveNessTable.put(k, aliveNessTable.get(k) - 2)
 
 
-
-
 def try_to_get(key):
     value_to_send = ("", )
     try:
         value = kvTable.get(key)
         Print.print_("KV[" + str(key) + "]=" + str(kvTable.get(key)), Print.Main, hashedKeyModN)
-        response = Response.SUCCESS
-        value_to_send = (value, )
+        if value is None:
+            value_to_send = ("", )
+            raise KeyError
+        else:
+            response = Response.SUCCESS
+            value_to_send = (value, )
     except KeyError:
         response = Response.NONEXISTENTKEY
     except MemoryError:
@@ -400,16 +406,18 @@ if __name__ == "__main__":
 
     nodeCommunicationObj = AvailabilityAndConsistency.NodeCommunication(int(N), mode)
 
-    # receiveThread = threading.Thread(target=receive_request)
-    # receiveThread.start()
+    receiveThread = threading.Thread(target=receive_request)
+    receiveThread.start()
+
     ip_port = NodeList.look_up_node_id(hashedKeyModN, mode)
-    if mode == Mode.planetLab:
-        udp_server = ThreadedUDPServer((NodeList.get_ip_address(ip_port.split(':')[0]),
-                                        int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
-    else:
-        udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
-    udp_thread = threading.Thread(target=udp_server.serve_forever)
-    udp_thread.start()
+    # MULTI-THREADED SERVER
+    # if mode == Mode.planetLab:
+    #     udp_server = ThreadedUDPServer((NodeList.get_ip_address(ip_port.split(':')[0]),
+    #                                     int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    # else:
+    #     udp_server = ThreadedUDPServer((ip_port.split(':')[0], int(ip_port.split(':')[1])), ThreadedUDPRequestHandler)
+    # udp_thread = threading.Thread(target=udp_server.serve_forever)
+    # udp_thread.start()
 
     nodeCommunicationObj.join(int(hashedKeyModN)) # call joining procedure
 
