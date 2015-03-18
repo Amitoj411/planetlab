@@ -37,9 +37,9 @@ class RequestReplyClient:
         self.unique_request_id = socket.inet_aton(socket.gethostbyname(socket.gethostname())) + \
                                  struct.pack("QHH",
                                  # int(time.strftime("%M")),
-                                 int(time.time() * 1000 % 1000),
+                                 int(time.time() * 10000 % 10000),
                                  int(self.local_port),
-                                 random.randint(0, 10))
+                                 random.randint(0, 100))
 
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
 

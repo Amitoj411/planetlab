@@ -16,7 +16,7 @@ class HashTable:
 
     def clean_once(self):
         while True:
-            time.sleep(10)  # clear it self each 10s
+            time.sleep(5)  # clear it self each 5s
             # for k in self.hashTable:
             #     del self.hashTable[k]
             self.hashTable.clear()
