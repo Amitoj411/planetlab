@@ -31,7 +31,6 @@ def off_load_get(key):
         if successor != int(hashedKeyModN):  # not the local node
             wireObj.send_request(Command.GET, key, 0, "", threading.currentThread(), successor)
             response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)  # We are not sending the TA
-            value = value[0]
             if response_code == Response.SUCCESS: Print.print_("Value:" + str(value),
                                                                Print.Main, hashedKeyModN)
         else:  # the local node
@@ -248,7 +247,7 @@ def epidemic_gossip():
 def epidemic_anti_antropy(key):
     counter = 0
     while counter < int(math.log(int(N), 2)):
-        print "Iteration: " + str(counter)
+        # print "Iteration: " + str(counter)
         randomNode = otherNode(key)
         if key != randomNode:
             value = aliveNessTable.get_list_of_alive_keys()
