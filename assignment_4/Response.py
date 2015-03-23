@@ -1,27 +1,27 @@
 __author__ = 'Owner'
 
-SUCCESS = 0x01
-NONEXISTENTKEY = 0x02
-OUTOFSPACE = 0x03
-OVERLOAD = 0x04
-STOREFAILURE = 0x05
-UNRECOGNIZED = 0x06
-RPNOREPLY = 0x21    #This is a TimeOut Event
+SUCCESS = 0x00
+NONEXISTENTKEY = 0x01
+OUTOFSPACE = 0x02
+OVERLOAD = 0x03
+STOREFAILURE = 0x04
+UNRECOGNIZED = 0x05
+RPNOREPLY = 0x21   #This is a TimeOut Event
 NoExternalAliveNodes = 0x22
 
 
 def print_response(x):
-    if x == 0x01:
+    if x == 0x00:
         return "SUCCESS"
-    elif x == 0x02:
+    elif x == 0x01:
         return "NONEXISTENTKEY"
-    elif x == 0x03:
+    elif x == 0x02:
         return "OUTOFSPACE"
-    elif x == 0x04:
+    elif x == 0x03:
         return "OVERLOAD"
-    elif x == 0x05:
+    elif x == 0x04:
         return "STOREFAILURE"
-    elif x == 0x06:
+    elif x == 0x05:
         return "UNRECOGNIZED"
     elif x == 0x21:
         return "RPNOREPLY"

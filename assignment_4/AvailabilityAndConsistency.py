@@ -21,7 +21,8 @@ class NodeCommunication:
     # Use the returned nodeID to call subsequent operations.
     # Return: 'cursor' if you find a successor other than yourself
     # Return: '-2' if the local node is the successor or if you are only alive node in the network
-    def search(self, key, localNode):
+    # TODO modify the search to use the aliveness table
+    def search(self, key, localNode, aliveNessTable):
         cursor = hash(key) % self.numberOfNodes
 
         # Key Locally Stored - Preliminary check to see if you are the node the key should be stored on.
@@ -33,28 +34,22 @@ class NodeCommunication:
         # cursor = hashedNodeID           # Cursor goes through the range of nodes in our system
         while True:
             try:
-                # Added to exclude yourself from being searched
-                # If cursor is equal to localNode then return -2
-                # if cursor == int(localNode):
-                #     if cursor != 0:
-                #         cursor -= 1
-                #         if cursor == hashedNodeID:
-                #             return -2
-                #     else:
-                #         cursor = self.numberOfNodes - 1
                 if cursor == int(localNode):
                     return int(localNode)
 
-                # Try to contact the cursor
-                wireObj = wire.Wire(self.numberOfNodes, localNode, self.mode) ####### BUGGGGGGGGGGGGGGGG
-                wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), cursor)
-                response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)  # not replying to the TA
-                Print.print_("Searched for node "+ str(cursor) \
-                    + " and received response: "+ Response.print_response(response_code) + "\n",
-                             Print.AvailabilityAndConsistency, localNode)
+                # Check if the cursor in the aliveness table first. If not alive, to Try to PING the cursor
+                if aliveNessTable.get(str(cursor)) >= 0:
+                    return cursor
+                else:
+                    # wireObj = wire.Wire(self.numberOfNodes, localNode, self.mode)
+                    # wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), cursor)
+                    # response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)
+                    # Print.print_("Searched for node "+ str(cursor) \
+                    #     + " and received response: "+ Response.print_response(response_code) + "\n",
+                    #              Print.AvailabilityAndConsistency, localNode)
 
-                # If receive no reply from the cursor node, point cursor to the next node
-                if response_code == Response.RPNOREPLY:  # counter clock wise
+                    # # If receive no reply from the cursor node, point cursor to the next node
+                    # if response_code == Response.RPNOREPLY:  # counter clock wise
                     if cursor - 1 < 0:
                         cursor = self.numberOfNodes - 1
                     else:
@@ -68,14 +63,11 @@ class NodeCommunication:
                     elif (self.numberOfNodes - cursor) + int(localNode) > 3:
                             return -2
                             break
-                    # Stop if you have looped back around to the original cursor
-                    # if cursor == hashedNodeID:
-                    #     break
 
-                # If we don't receive a timeout return the cursor i.e. it is a alive,
-                # then return the cursor.
-                else:
-                    return cursor
+                    # If we don't receive a timeout return the cursor i.e. it is a alive,
+                    # then return the cursor.
+                    # else:
+                    #     return cursor
             except:
                 raise
         return -2
@@ -134,11 +126,11 @@ class NodeCommunication:
         if successor != localNode and successor != -2:  # else its only me in the network
             Print.print_("successor found: "+ str(successor) + "\n"
                          ,Print.AvailabilityAndConsistency, localNode)
-            wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode)  # BUGGGGGGGGGGGGGGGGGGGGG
+            wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode)
             wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode)
                                   , threading.currentThread(), successor)
             response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN)
-            # Not replying to the TA
+
         elif successor == -2:
             print "stopped after three searches"
 

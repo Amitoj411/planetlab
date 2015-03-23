@@ -7,7 +7,8 @@ SHUTDOWN = 0x04
 JOIN = 0x20
 PING = 0x21
 JOIN_FIN = 0x22
-ALIVE = 0x23
+PUSH = 0x23
+ALIVE = 0x24
 
 
 def print_command(x):
@@ -26,7 +27,9 @@ def print_command(x):
     elif x == 0x22:
         return "JOIN_FIN"
     elif x == 0x23:
-        return "ALIVE"
+        return "PUSH" # anti-antropy
+    elif x == 0x24:
+        return "ALIVE"# gossip
     else:
         return "UNRECOGNIZED"
 

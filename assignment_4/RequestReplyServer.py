@@ -8,16 +8,21 @@ import array
 import udpSendRecieve
 import HashTable
 import Print
+import Command
 
 class Message:
     ip = ""
     port = ""
     msg = ""
+    command = ""  # For logging purposes
+    key = ""  # For logging purposes
 
-    def __init__(self, ip, port, msg):
+    def __init__(self, ip, port, msg, command, key):
         self.ip = ip
         self.port = port
         self.msg = msg
+        self.command = command
+        self.key = key
 
 
 class RequestReplyServer:
@@ -39,23 +44,17 @@ class RequestReplyServer:
         self.timeout = timeout
         self.cache.clean()
 
-    def send(self, udp_ip, udp_port, message):
-        # Prepare the header as A1
-        # print "self.unique_request_id(Server):" + self.unique_request_id
-
+    def send(self, udp_ip, udp_port, message, command, key):
         # Add to the server cache
-        msgObj = Message(udp_ip, udp_port, message)
+        msgObj = Message(udp_ip, udp_port, message,
+                         command, key)  # Command and key just for logging
         self.cache.put(str(self.unique_request_id), msgObj)
 
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
-    def receive(self, udp_port, handler, cur_thread, local_node_id):
+    def receive(self, udp_port, handler, cur_thread, local_node_id, command="", key=""):
         while True:
             data, addr = self.udp_obj.receive(udp_port, self.timeout, cur_thread, handler)
-
-            # print "data:" + data + ", data length:" + str(len(data)) +\
-            #       ",received_header:" + received_header +\
-            #       ", length(received_header):" + str(len(received_header))
 
             received_header = data[0:16]
             data = data[16:]
@@ -66,18 +65,11 @@ class RequestReplyServer:
                 return received_header, data, addr
             else:  # duplicate msgs
                 # send the reply again
-                # print "self.cache.get(str(received_header)):" + str(self.cache.get(str(received_header)))
                 msgObj = self.cache.get(str(received_header))
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
-                Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, ",
-                             Print.RequestReplyClient, local_node_id, cur_thread)
+                # Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, "
+                #              + "Reply for command: " + Command.print_command(msgObj.command)
+                #              + " key: " + msgObj.key
+                #              , Print.RequestReplyClient, local_node_id, cur_thread)
 
-                # self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
-                #               "client")
                 continue
-
-
-
-
-
-

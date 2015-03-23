@@ -54,15 +54,16 @@ class RequestReplyClient:
                 # print "payload: " + payload
                 if self.unique_request_id == received_header:
                     return payload
-                else:
-                    print "bad 16:" + received_header
+                # else:
+                    # TODO check the bad cases
+                    # print "bad 16:" + received_header
             except socket.error:
                 if self.retrials != 0:
                     resend_counter += 1
                     timeout *= 2
-                    Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
-                          "s. Sending again, trail: " + str(resend_counter),
-                                 Print.RequestReplyClient, local_node_id, cur_thread)
+                    # Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
+                    #       "s. Sending again, trail: " + str(resend_counter-1),
+                    #              Print.RequestReplyClient, local_node_id, cur_thread)
                     self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
                                   "client")
                 else:

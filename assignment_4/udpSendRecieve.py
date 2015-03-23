@@ -33,6 +33,7 @@ class UDPNetwork:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.bind(("", int(udp_port)))
             sock.settimeout(timeout)  # 100 ms be default
+
             while True:
                 data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
 

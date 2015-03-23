@@ -1,0 +1,2 @@
+*/1 * * * * echo "hi" > /tmp/tmp.txt
+0,15,30,45 * * * * /home/ubc_eece411_7/assignment4/cron.sh

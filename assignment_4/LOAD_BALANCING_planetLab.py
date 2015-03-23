@@ -19,12 +19,12 @@ if __name__ == "__main__":
         value_to_send += "1234567890"
 
     numberOfMsgs = 100
-    retrial_times = 2
+    retrial_times = 0
     sleep_time = 0
 
     node_id = 0
     sum = 0
-    for seed in range(0, numberOfMsgs):  # Arbitrary 15 msgs sent
+    for seed in range(0, numberOfMsgs):
         print "seed:" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
@@ -39,10 +39,13 @@ if __name__ == "__main__":
 
         if response_code == Response.SUCCESS:
             sum += 1
+        else:
+            print "************************************************************"
+            print "************************************************************"
         time.sleep(sleep_time)
-    print("Total successful PUT: {}/{}".format(sum, numberOfMsgs))
+    print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
 
-    # _ = raw_input('Ready to get?>')
+    _ = raw_input('Ready to get?>')
     node_id = 2
     sum_get = 0
     for seed in range(numberOfMsgs - 1, -1, -1):  # Arbitrary 14 msgs sent
@@ -60,14 +63,16 @@ if __name__ == "__main__":
 
         if response_code == Response.SUCCESS:
             sum_get += 1
+        else:
+            print "************************************************************"
+            print "************************************************************"
         time.sleep(sleep_time)
 
-    print("Total successful PUT: {}/{}".format(sum, numberOfMsgs))
-    print("Total successful GET: {}/{}".format(sum_get, numberOfMsgs))
+    print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
+    print "Total successful GET: " + str(sum_get) + "/" + str(numberOfMsgs)
 
 
-
-    # _ = raw_input('Ready to REMOVE?>')
+    _ = raw_input('Ready to REMOVE?>')
     sum_remove = 0
     count = 0
     for seed in range(numberOfMsgs - 1, -1, -1):
@@ -89,10 +94,9 @@ if __name__ == "__main__":
             sum_remove += 1
         time.sleep(sleep_time)
 
-
-    print("Total successful PUT: {}/{}".format(sum, numberOfMsgs))
-    print("Total successful GET: {}/{}".format(sum_get, numberOfMsgs))
-    print("Total successful REMOVE: {}/{}".format(sum_remove, numberOfMsgs))
+    print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
+    print "Total successful GET: " + str(sum_get) + "/" + str(numberOfMsgs)
+    print "Total successful REMOVE: " + str(sum_remove) + "/" + str(numberOfMsgs)
 
     sum_get_after = 0
     # _ = raw_input('Ready to GET after REMOVE?>')
@@ -113,7 +117,7 @@ if __name__ == "__main__":
             sum_get_after += 1
         time.sleep(sleep_time)
 
-    print("Total successful PUT: {}/{}".format(sum, numberOfMsgs))
-    print("Total successful GET: {}/{}".format(sum_get, numberOfMsgs))
-    print("Total successful REMOVE: {}/{}".format(sum_remove, numberOfMsgs))
-    print("Total NONEXISTENTKEY GET after REMOVE: {}/{}".format(sum_get_after, numberOfMsgs))
+    print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
+    print "Total successful GET: " + str(sum_get) + "/" + str(numberOfMsgs)
+    print "Total successful REMOVE: " + str(sum_remove) + "/" + str(numberOfMsgs)
+    print "Total NONEXISTENTKEY GET: " + str(sum_get_after) + "/" + str(numberOfMsgs)

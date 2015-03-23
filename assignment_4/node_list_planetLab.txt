@@ -24,7 +24,7 @@
 23,planetlab-n2.wand.net.nz:50000
 24,planetlab2.cis.upenn.edu:50000
 25,planetlab1.netlab.uky.edu:50000
-26,cs-planetlab3.cs.surrey.sfu.ca:50000
+26,planetlab1.utt.fr:50000
 27,pl3.cs.unm.edu:50000
 28,planetlab1.postel.org:50000
 29,pli1-pa-1.hpl.hp.com:50000

@@ -16,7 +16,7 @@ class HashTable:
 
     def clean_once(self):
         while True:
-            time.sleep(5)  # clear it self each 5s
+            time.sleep(7)  # clear it self each 5s
             # for k in self.hashTable:
             #     del self.hashTable[k]
             self.hashTable.clear()
@@ -34,17 +34,17 @@ class HashTable:
 
     def _print(self):
         print "     ##############"
-        print("     {}[Key]: Value".format(self.id))
+        print "     " + self.id + "[Key]: Value"
         print "     ##############"
         if len(self.hashTable.items()) == 0:
-            print("     Empty {}".format(self.id))
+            print"     Empty " + self.id
         else:
             count = 1
-            for key, value in self.hashTable.items():
+            for key in sorted(self.hashTable):
                 if self.id == "ServerCache":
-                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + value.msg
+                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + self.hashTable[key].msg
                 else:
-                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(value)
+                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(self.hashTable[key])
                 count += 1
         print "     "
 
@@ -55,6 +55,15 @@ class HashTable:
             return val
         except:
             raise
+
+    # for the aliveness table only
+    def get_list_of_alive_keys(self):
+        list_ = []
+        for k in self.hashTable:
+            if int(self.hashTable.get(k)) >= 0:
+                list_.append(k + ":" + str(self.hashTable[k]))
+        return list_
+
 
     # def size(self):
     #     sum = 0

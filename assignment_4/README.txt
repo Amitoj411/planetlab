@@ -41,8 +41,9 @@ THe following sets of nodes have been deployed in groups of 3, isolated from the
     planetlab3.mini.pw.edu.pl
     planetlab1.cqupt.edu.cn
 
-    planetlab-1.ssvl.kth.se
-    planetlab1.utt.fr
+    #planetlab-1.ssvl.kth.se
+    planetlab1.cs.ubc.ca
+    cs-planetlab3.cs.surrey.sfu.ca
     planetlab2.cs.ubc.ca
 
 #######################
