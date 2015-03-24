@@ -20,7 +20,7 @@ if __name__ == "__main__":
     for i in range(2):
         value_to_send += "1234567890"
 
-    numberOfMsgs = 100
+    numberOfMsgs = 18
     retrial_times = 0
     sleep_time = 0
     timeout = 1

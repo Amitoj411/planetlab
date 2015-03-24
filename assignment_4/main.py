@@ -66,6 +66,7 @@ def off_load_put(key, value):
             wireObj.send_request(Command.PUT_HINTED, key, len(value), value, threading.currentThread(), successor)
             response_code, value_ = wireObj.receive_reply(threading.currentThread(), Command.PUT)
 
+            # SUDDEN DEATH OR SUDDEN JOIN
             if response_code != Response.SUCCESS:  # probably dead but not yet propagated, Workaround procedure
                 # PING it, if dead. Declare dead and call recursively
                 wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), successor)
@@ -93,7 +94,7 @@ def off_load_remove(key):
             wireObj.send_request(Command.REMOVE_HINTED, key, 0, "", threading.currentThread(), successor)
             response_code, value = wireObj.receive_reply(threading.currentThread(), Command.REMOVE)
 
-            # probably dead but not yet propagated, Workaround procedure
+            # SUDDEN DEATH probably dead but not yet propagated, Workaround procedure
             if response_code != Response.SUCCESS and response_code != Response.NONEXISTENTKEY:
                     # PING it, if dead. Declare dead and call recursively
                     wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), successor)
@@ -176,13 +177,15 @@ def receive_request(handler=""):
             wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "", cur_thread, Command.JOIN)  # For th join
             keys_to_be_deleted = []
             for k in kvTable.hashTable:
-                if hash(k) % int(N) > int(hashedKeyModN) or hash(k) % int(N) == join_id:
+                distance = int(math.fabs(int(hashedKeyModN) - join_id))
+                if distance == 1 and (hash(k) % int(N) > int(hashedKeyModN) or hash(k) % int(N) == join_id) or \
+                        (distance > 1 and hash(k) % int(N) == join_id):
                         # ensure joinID is the ID of the predecessor or the upper
                         # space between the joined node and the received node
                         # or (hash(k) % int(N) < join_id and hash(k) % int(N) < hashedKeyModN) \
                         # or (hash(k) % int(N) > join_id):
 
-                    print hash(k) % int(N)
+                    # print hash(k) % int(N)
                     key_value = kvTable.hashTable[k]
                     # print "key_value: " + str(key_value)
                     wireObj.send_request(Command.PUT, k, len(key_value), key_value,
