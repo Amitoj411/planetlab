@@ -19,6 +19,7 @@ class Wire:
     fmtRequest = "<B32s"  # Format of Data to be cont. later in the function
     fmtReply = "<B"
     mode = ""
+    ALIVE_PUSH_DEBUG = False
 
     def __init__(self, numberOfNodes, hashedKeyModN, mode):
         self.numberOfNodes = numberOfNodes
@@ -29,21 +30,30 @@ class Wire:
     def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=2):
         # @Abraham and Amitoj: pack the variable msg with the headers before sending
         fmt = self.fmtRequest
-        if command == Command.PUT or command == Command.JOIN or command == Command.ALIVE or Command.PUSH:
+        if command == Command.PUT or command == Command.JOIN or command == Command.ALIVE or Command.PUSH or Command.PUT_HINTED:
             fmt += "H" + str(value_length) + 's'
             msg = struct.pack(fmt, command, key, value_length, value)                #Packing value as an Int
         else:  # other commands
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        # if command != Command.ALIVE and command != Command.PUSH:
-        Print.print_("send_request$ command:" + Command.print_command(command) \
-            + ", key: " + key \
-            + ", value_length: " \
-            + str(value_length)  \
-            + ", value: " + str(value) \
-            + ", node id: " + str(node_overwrite) \
-            , Print.Wire, self.hashedKeyModN, cur_thread)
+        if self.ALIVE_PUSH_DEBUG:
+            Print.print_("send_request$ command:" + Command.print_command(command) \
+                    + ", key: " + key \
+                    + ", value_length: " \
+                    + str(value_length)  \
+                    + ", value: " + str(value) \
+                    + ", node id: " + str(node_overwrite) \
+                    , Print.Wire, self.hashedKeyModN, cur_thread)
+        else:
+            if command != Command.ALIVE and command != Command.PUSH:
+                Print.print_("send_request$ command:" + Command.print_command(command) \
+                    + ", key: " + key \
+                    + ", value_length: " \
+                    + str(value_length)  \
+                    + ", value: " + str(value) \
+                    + ", node id: " + str(node_overwrite) \
+                    , Print.Wire, self.hashedKeyModN, cur_thread)
 
         #  Get the IP Port from the key
         if node_overwrite == -1:
@@ -70,7 +80,7 @@ class Wire:
             command, key = struct.unpack(self.fmtRequest, msg[0:33])
             value_length = 0
             if command == Command.PUT or command == Command.JOIN\
-                    or command == Command.ALIVE or command == Command.PUSH : #PUT or JOIN or PUSH or aLIVE
+                    or command == Command.ALIVE or command == Command.PUSH or Command.PUT_HINTED: #PUT or JOIN or PUSH or aLIVE
                 value_length = struct.unpack("H", msg[33:35])
                 value_length = int(value_length[0])
                 # print value_length
@@ -78,18 +88,32 @@ class Wire:
                 value = struct.unpack(value_fmt, msg[35:35+value_length])
             else:  # Other commands
                 value = ("",)
-            # if command != Command.ALIVE and command != Command.PUSH:
-            Print.print_("receive_request$ "
-                + str(addr)
-                + ", Command Received:"
-                + Command.print_command(command)
-                + ", Key:"
-                + key
-                + ", Value: "
-                + value[0]
-                + ", Value Length: "
-                + str(value_length)
-                , Print.Wire, self.hashedKeyModN, cur_thread)
+
+            if self.ALIVE_PUSH_DEBUG:
+                Print.print_("receive_request$ "
+                        + str(addr)
+                        + ", Command Received:"
+                        + Command.print_command(command)
+                        + ", Key:"
+                        + key
+                        + ", Value: "
+                        + value[0]
+                        + ", Value Length: "
+                        + str(value_length)
+                        , Print.Wire, self.hashedKeyModN, cur_thread)
+            else:
+                if command != Command.ALIVE and command != Command.PUSH:
+                    Print.print_("receive_request$ "
+                        + str(addr)
+                        + ", Command Received:"
+                        + Command.print_command(command)
+                        + ", Key:"
+                        + key
+                        + ", Value: "
+                        + value[0]
+                        + ", Value Length: "
+                        + str(value_length)
+                        , Print.Wire, self.hashedKeyModN, cur_thread)
         except:
             raise
 
@@ -98,20 +122,34 @@ class Wire:
         return command, key, value_length, value, addr
 
     def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command):
-        # if command != Command.ALIVE and command != Command.PUSH:
-        Print.print_(
-            "send_reply$ " + str(sender_addr) +
-            ", response_code: " + Response.print_response(response_code) +
-            ", value: " + value +
-            ", value length: " + str(value_length) +
-            ", mode: " +
-            Mode.print_mode(self.mode) +
-            "\n", Print.Wire, self.hashedKeyModN, cur_thread)
 
+        if self.ALIVE_PUSH_DEBUG:
+            Print.print_(
+                "send_reply$ " + str(sender_addr) +
+                ", response_code: " + Response.print_response(response_code) +
+                ", value: " + value +
+                ", value length: " + str(value_length) +
+                ", mode: " +
+                Mode.print_mode(self.mode) +
+                "\n", Print.Wire, self.hashedKeyModN, cur_thread)
+        else:
+            if command != Command.ALIVE and command != Command.PUSH:
+                Print.print_(
+                    "send_reply$ " + str(sender_addr) +
+                    ", response_code: " + Response.print_response(response_code) +
+                    ", value: " + value +
+                    ", value length: " + str(value_length) +
+                    ", mode: " +
+                    Mode.print_mode(self.mode) +
+                    "\n", Print.Wire, self.hashedKeyModN, cur_thread)
 
         fmt = self.fmtReply
-        fmt += 'H' + str(value_length) + 's'
-        msg = struct.pack(fmt, response_code, value_length, value)
+        # Modify such that don't send the value length and the value except for teh GET PING and ALIVE
+        if value_length != 0:
+            fmt += 'H' + str(value_length) + 's'
+            msg = struct.pack(fmt, response_code, value_length, value)
+        else:
+            msg = struct.pack(fmt, response_code)
         self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key)
 
     def receive_reply(self, cur_thread, command):
@@ -124,19 +162,25 @@ class Wire:
                 response_code = struct.unpack(self.fmtReply, request_reply_response[0:1])
                 response_code = response_code[0]
                 if response_code == Response.SUCCESS:
-                    value_length = struct.unpack('H', request_reply_response[1:3])
-                    value_length = value_length[0]
-                    if value_length != 0:  # operation is successful and there is a value.
-                        value_fmt = str(value_length) + 's'
-                        value = struct.unpack(value_fmt, request_reply_response[3:])
+                    if len(request_reply_response) > 1:
+                        value_length = struct.unpack('H', request_reply_response[1:3])
+                        value_length = value_length[0]
+                        if value_length != 0:  # operation is successful and there is a value.
+                            value_fmt = str(value_length) + 's'
+                            value = struct.unpack(value_fmt, request_reply_response[3:])
             except:
                 raise
-
-        # if command != Command.ALIVE and command != Command.PUSH:
-        Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
-            ", value:" + str(value[0]) + \
-            ", mode: " + Mode.print_mode(self.mode) + "\n"\
-            , Print.Wire, self.hashedKeyModN, cur_thread)
+        if self.ALIVE_PUSH_DEBUG:
+            Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
+                ", value:" + str(value[0]) + \
+                ", mode: " + Mode.print_mode(self.mode) + "\n"\
+                , Print.Wire, self.hashedKeyModN, cur_thread)
+        else:
+            if command != Command.ALIVE and command != Command.PUSH:
+                Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
+                    ", value:" + str(value[0]) + \
+                    ", mode: " + Mode.print_mode(self.mode) + "\n"\
+                    , Print.Wire, self.hashedKeyModN, cur_thread)
             
         return response_code, value[0]
 

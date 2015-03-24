@@ -1,11 +1,16 @@
 __author__ = 'Owner'
+
+import os
+import sys
+# sys.path.append("../wire.py")
 import wire
 import Mode
 import ring
 import Command
 import time
+
 from Response import print_response
-import  threading
+import threading
 if __name__ == "__main__":
     kvTable = ring.Ring()
     wireObj = wire.Wire(3, 0, Mode.local)

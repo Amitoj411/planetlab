@@ -4,7 +4,7 @@ import thread
 
 
 class HashTable:
-      # creates an empty hash table (or 'dictionary')
+    # creates an empty hash table (or 'dictionary')
     id = ""
 
     # constructor

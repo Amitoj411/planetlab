@@ -1,5 +1,9 @@
 __author__ = 'Owner'
 
+# Two groups waiting for a reply with a value
+# PUT, REMOVE, SHUTDOWN, JOIN, PING, PUT_HINTED, REMOVE_HINTED
+# GET, GET_HINTED, PUSH, ALIVE
+
 PUT = 0x01
 GET = 0x02
 REMOVE = 0x03
@@ -9,6 +13,9 @@ PING = 0x21
 JOIN_FIN = 0x22
 PUSH = 0x23
 ALIVE = 0x24
+PUT_HINTED = 0x25
+GET_HINTED = 0x26
+REMOVE_HINTED = 0x27
 
 
 def print_command(x):
@@ -27,9 +34,15 @@ def print_command(x):
     elif x == 0x22:
         return "JOIN_FIN"
     elif x == 0x23:
-        return "PUSH" # anti-antropy
+        return "PUSH"  # anti-antropy
     elif x == 0x24:
-        return "ALIVE"# gossip
+        return "ALIVE"  # gossip
+    elif x == 0x25:
+        return "PUT_HINTED"  # gossip
+    elif x == 0x26:
+        return "GET_HINTED"  # gossip
+    elif x == 0x27:
+        return "REMOVE_HINTED"  # gossip
     else:
         return "UNRECOGNIZED"
 

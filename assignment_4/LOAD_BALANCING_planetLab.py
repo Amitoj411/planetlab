@@ -1,4 +1,6 @@
 __author__ = 'Owner'
+# import sys
+# sys.path.append("../")
 import wire
 import Mode
 import ring
@@ -21,6 +23,7 @@ if __name__ == "__main__":
     numberOfMsgs = 100
     retrial_times = 0
     sleep_time = 0
+    timeout = 1
 
     node_id = 0
     sum = 0
@@ -28,7 +31,7 @@ if __name__ == "__main__":
         print "seed:" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
-                             0, .1, retrials=retrial_times)  # send to node 0
+                             0, timeout, retrials=retrial_times)  # send to node 0
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print print_response(response_code) + "\n"
 
@@ -52,7 +55,7 @@ if __name__ == "__main__":
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
-                             , .1, retrials=retrial_times)  # send to node 0
+                             , timeout, retrials=retrial_times)  # send to node 0
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code) + "\n"
 
@@ -81,7 +84,7 @@ if __name__ == "__main__":
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.REMOVE, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
-                             , .1, retrials=retrial_times)  # send to node 0
+                             , timeout, retrials=retrial_times)  # send to node 0
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code) + "\n"
 
@@ -104,7 +107,7 @@ if __name__ == "__main__":
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
         wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
-                             , .1, retrials=retrial_times)  # send to node 0
+                             , timeout, retrials=retrial_times)  # send to node 0
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code) + "\n"
 

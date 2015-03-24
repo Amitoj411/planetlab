@@ -29,10 +29,19 @@ def off_load_get(key):
     if successor != -2:
         # Print.print_ "The Key Doesn't exist on the network, will return current node"
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.GET, key, 0, "", threading.currentThread(), successor)
-            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)  # We are not sending the TA
-            if response_code == Response.SUCCESS: Print.print_("Value:" + str(value),
-                                                               Print.Main, hashedKeyModN)
+            wireObj.send_request(Command.GET_HINTED, key, 0, "", threading.currentThread(), successor)
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
+
+            if response_code != Response.SUCCESS and response_code != Response.NONEXISTENTKEY:
+                # PING it, if dead. Declare dead and call recursively
+                wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), successor)
+                response_code_, value_ = wireObj.receive_reply(threading.currentThread(), Command.PING)
+                if response_code_ != Response.SUCCESS:  # Declare dead
+                    aliveNessTable.put(str(successor), -1)
+                    response_code, value = off_load_get(key)
+            else:
+                Print.print_("Value:" + str(value),Print.Main, hashedKeyModN)
+
         else:  # the local node
             response_code, value = try_to_get(key)
     else:
@@ -54,8 +63,17 @@ def off_load_put(key, value):
     if successor != -2:
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.PUT, key, len(value), value, threading.currentThread(), successor)
-            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)  # We are sending the TA!
+            wireObj.send_request(Command.PUT_HINTED, key, len(value), value, threading.currentThread(), successor)
+            response_code, value_ = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+
+            if response_code != Response.SUCCESS:  # probably dead but not yet propagated, Workaround procedure
+                # PING it, if dead. Declare dead and call recursively
+                wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), successor)
+                response_code_, value_ = wireObj.receive_reply(threading.currentThread(), Command.PING)
+                if response_code_ != Response.SUCCESS:  # Declare dead
+                    aliveNessTable.put(str(successor), -1)
+                    response_code = off_load_put(key, value)
+
         else:  # local
             response_code = try_to_put(key, value)
     else:  # There is no nodes in the network"
@@ -72,8 +90,18 @@ def off_load_remove(key):
     if successor != -2:
         Print.print_("$main: Next alive:" + str(successor), Print.Main, hashedKeyModN)
         if successor != int(hashedKeyModN):  # not the local node
-            wireObj.send_request(Command.REMOVE, key, 0, "", threading.currentThread(), successor)
-            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.REMOVE)  # We are not sending the TA
+            wireObj.send_request(Command.REMOVE_HINTED, key, 0, "", threading.currentThread(), successor)
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.REMOVE)
+
+            # probably dead but not yet propagated, Workaround procedure
+            if response_code != Response.SUCCESS and response_code != Response.NONEXISTENTKEY:
+                    # PING it, if dead. Declare dead and call recursively
+                    wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), successor)
+                    response_code_, value_ = wireObj.receive_reply(threading.currentThread(), Command.PING)
+                    if response_code_ != Response.SUCCESS:  # Declare dead
+                        aliveNessTable.put(str(successor), -1)
+                        response_code = off_load_remove(key)
+
         else:
             response_code = try_to_remove(key)
     else:
@@ -112,13 +140,25 @@ def receive_request(handler=""):
             response = off_load_put(key, value)
             wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT)
 
+        elif command == Command.PUT_HINTED:
+            response = try_to_put(key, value)
+            wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT_HINTED)
+
         elif command == Command.GET:
             response, value = off_load_get(key)
             value_to_send = value
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET)
 
+        elif command == Command.GET_HINTED:
+            response, value_to_send = try_to_get(key)
+            wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET)
+
         elif command == Command.REMOVE:
             response = off_load_remove(key)
+            wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REMOVE)
+
+        elif command == Command.REMOVE_HINTED:
+            response = try_to_remove(key)
             wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REMOVE)
 
         elif command == Command.SHUTDOWN:
@@ -278,7 +318,7 @@ def iAmAliveAntriAntropy():
         if int(N) > 10:
             r = random.randint(2, 3)  # periodically
         else:
-            r = random.randint(3, 6)  # periodically
+            r = random.randint(2, 5)  # periodically
         time.sleep(r)
         random_node = otherNode()
         value = aliveNessTable.get_list_of_alive_keys()
