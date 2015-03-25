@@ -11,14 +11,10 @@ class HashTable:
     def __init__(self, id):
         self.id = id
         self.hashTable = {}
-    #     self.x = x
-    #     self.y = y
 
     def clean_once(self):
         while True:
-            time.sleep(7)  # clear it self each 5s
-            # for k in self.hashTable:
-            #     del self.hashTable[k]
+            time.sleep(5)  # clear it self each 5s
             self.hashTable.clear()
 
     # For the server cache only

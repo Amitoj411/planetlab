@@ -52,10 +52,11 @@ class RequestReplyServer:
 
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
+
+
     def receive(self, udp_port, handler, cur_thread, local_node_id, command="", key=""):
         while True:
             data, addr = self.udp_obj.receive(udp_port, self.timeout, cur_thread, handler)
-
             received_header = data[0:16]
             data = data[16:]
             # Check the server cache before replying back to the client
@@ -65,11 +66,12 @@ class RequestReplyServer:
                 return received_header, data, addr
             else:  # duplicate msgs
                 # send the reply again
+                print "Duplicate MODEEEEEEEEE"
                 msgObj = self.cache.get(str(received_header))
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
-                # Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, "
-                #              + "Reply for command: " + Command.print_command(msgObj.command)
-                #              + " key: " + msgObj.key
-                #              , Print.RequestReplyClient, local_node_id, cur_thread)
+                Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, "
+                             + "Reply for command: " + Command.print_command(msgObj.command)
+                             + " key: " + msgObj.key
+                             , Print.RequestReplyClient, local_node_id, cur_thread)
 
                 continue

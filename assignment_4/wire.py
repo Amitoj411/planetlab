@@ -37,17 +37,8 @@ class Wire:
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))                  #Packing Key as an Int
 
-        if self.ALIVE_PUSH_DEBUG:
+        if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
             Print.print_("send_request$ command:" + Command.print_command(command) \
-                    + ", key: " + key \
-                    + ", value_length: " \
-                    + str(value_length)  \
-                    + ", value: " + str(value) \
-                    + ", node id: " + str(node_overwrite) \
-                    , Print.Wire, self.hashedKeyModN, cur_thread)
-        else:
-            if command != Command.ALIVE and command != Command.PUSH:
-                Print.print_("send_request$ command:" + Command.print_command(command) \
                     + ", key: " + key \
                     + ", value_length: " \
                     + str(value_length)  \
@@ -79,8 +70,7 @@ class Wire:
         try:
             command, key = struct.unpack(self.fmtRequest, msg[0:33])
             value_length = 0
-            if command == Command.PUT or command == Command.JOIN\
-                    or command == Command.ALIVE or command == Command.PUSH or Command.PUT_HINTED: #PUT or JOIN or PUSH or aLIVE
+            if command == Command.PUT or command == Command.JOIN or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED:
                 value_length = struct.unpack("H", msg[33:35])
                 value_length = int(value_length[0])
                 # print value_length
@@ -89,21 +79,8 @@ class Wire:
             else:  # Other commands
                 value = ("",)
 
-            if self.ALIVE_PUSH_DEBUG:
+            if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
                 Print.print_("receive_request$ "
-                        + str(addr)
-                        + ", Command Received:"
-                        + Command.print_command(command)
-                        + ", Key:"
-                        + key
-                        + ", Value: "
-                        + value[0]
-                        + ", Value Length: "
-                        + str(value_length)
-                        , Print.Wire, self.hashedKeyModN, cur_thread)
-            else:
-                if command != Command.ALIVE and command != Command.PUSH:
-                    Print.print_("receive_request$ "
                         + str(addr)
                         + ", Command Received:"
                         + Command.print_command(command)
@@ -123,7 +100,7 @@ class Wire:
 
     def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command):
 
-        if self.ALIVE_PUSH_DEBUG:
+        if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
             Print.print_(
                 "send_reply$ " + str(sender_addr) +
                 ", response_code: " + Response.print_response(response_code) +
@@ -132,16 +109,6 @@ class Wire:
                 ", mode: " +
                 Mode.print_mode(self.mode) +
                 "\n", Print.Wire, self.hashedKeyModN, cur_thread)
-        else:
-            if command != Command.ALIVE and command != Command.PUSH:
-                Print.print_(
-                    "send_reply$ " + str(sender_addr) +
-                    ", response_code: " + Response.print_response(response_code) +
-                    ", value: " + value +
-                    ", value length: " + str(value_length) +
-                    ", mode: " +
-                    Mode.print_mode(self.mode) +
-                    "\n", Print.Wire, self.hashedKeyModN, cur_thread)
 
         fmt = self.fmtReply
         # Modify such that don't send the value length and the value except for teh GET PING and ALIVE
@@ -153,7 +120,7 @@ class Wire:
         self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key)
 
     def receive_reply(self, cur_thread, command):
-        request_reply_response = self.RequestReplyClient_obj.receive_reply(self.hashedKeyModN, cur_thread)
+        request_reply_response = self.RequestReplyClient_obj.receive_reply(command, self.hashedKeyModN, cur_thread)
         value = ("",)
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY
@@ -170,17 +137,11 @@ class Wire:
                             value = struct.unpack(value_fmt, request_reply_response[3:])
             except:
                 raise
-        if self.ALIVE_PUSH_DEBUG:
+        if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
             Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
                 ", value:" + str(value[0]) + \
                 ", mode: " + Mode.print_mode(self.mode) + "\n"\
                 , Print.Wire, self.hashedKeyModN, cur_thread)
-        else:
-            if command != Command.ALIVE and command != Command.PUSH:
-                Print.print_("receive_reply$ response:" + Response.print_response(response_code) + \
-                    ", value:" + str(value[0]) + \
-                    ", mode: " + Mode.print_mode(self.mode) + "\n"\
-                    , Print.Wire, self.hashedKeyModN, cur_thread)
             
         return response_code, value[0]
 

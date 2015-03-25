@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     node_id = 0
     sum = 0
-    timeout = 5
+    timeout = 2
     # for seed in range(0, numberOfMsgs):
     #     print "seed:" + str(seed) + ", node id:" + str(node_id)
 

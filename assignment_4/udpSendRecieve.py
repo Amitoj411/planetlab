@@ -24,7 +24,6 @@ class UDPNetwork:
         self.send_socket.settimeout(timeout)  # 100 ms be default
         while True:
             reply, addr = self.send_socket.recvfrom(1024)
-            # self.send_socket.close()
             break
         return reply, addr
 

@@ -2,13 +2,12 @@ __author__ = 'Owner'
 # To-Do do whatever we did in assignment 1
 import socket
 import time
-# import binascii
 import struct
 import udpSendRecieve
 import array
-import Colors
 import random
 import Print
+import Command
 
 
 class RequestReplyClient:
@@ -22,6 +21,7 @@ class RequestReplyClient:
     message = ""
     local_port = ""
     retrials = 2
+    ALIVE_PUSH_DEBUG = False
 
     def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials):
         self.udp_ip = udp_ip
@@ -43,7 +43,7 @@ class RequestReplyClient:
 
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
 
-    def receive_reply(self, local_node_id, cur_thread):
+    def receive_reply(self, command, local_node_id="", cur_thread=""):
         resend_counter = 1
         timeout = self.timeout
         while resend_counter <= self.retrials + 1:
@@ -61,9 +61,10 @@ class RequestReplyClient:
                 if self.retrials != 0:
                     resend_counter += 1
                     timeout *= 2
-                    # Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
-                    #       "s. Sending again, trail: " + str(resend_counter-1),
-                    #              Print.RequestReplyClient, local_node_id, cur_thread)
+                    if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
+                        Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
+                              "s. Sending again, trail: " + str(resend_counter-1),
+                                     Print.RequestReplyClient, local_node_id, cur_thread)
                     self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
                                   "client")
                 else:

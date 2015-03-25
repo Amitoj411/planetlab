@@ -204,7 +204,7 @@ def receive_request(handler=""):
             wireObj.send_reply(sender_addr, key, Response.SUCCESS, len(value_piggybacking), value_piggybacking, cur_thread, Command.PUSH)
             # Send msg Epidemicly; anti-antrpoy
             if int(key) != int(hashedKeyModN):
-                increamentSoftState(key)
+                increment_soft_state(key)
                 list_of_alive_nodes = value.split(',')
                 update_incoming(list_of_alive_nodes)
 
@@ -221,7 +221,11 @@ def receive_request(handler=""):
             list_of_alive_nodes = value.split(',')
             update_incoming(list_of_alive_nodes)
             if int(key) != int(hashedKeyModN):
-                increamentSoftState(key)
+                increment_soft_state(key)
+
+            if not contaminated:
+                epidemic_anti_antropy(key)
+                contaminated = True
         else:
             response = Response.UNRECOGNIZED
             wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT)  # no unrecog command
@@ -236,17 +240,15 @@ def update_incoming(list_of_alive_nodes):
             if int(k) != int(hashedKeyModN) and k != "":
                 if aliveNessTable.get(k) is not None:
                     if int(count) > int(aliveNessTable.get(k)):
-                        increamentSoftState(k)
+                        increment_soft_state(k)
                         print "BONUS!: " + str(k),
-                        # if int(aliveNessTable.get(k)) == 0:
-                        #     epidemic_anti_antropy(k)
-                else:  # if does not exist locally, increament!
+                else:  # if does not exist locally, increment!
                     print "NEW LIFE!!: " + str(k)
-                    increamentSoftState(k)
-                    # epidemic_anti_antropy(k)
+                    increment_soft_state(k)
+
 
 # Increment the soft state
-def increamentSoftState(key):
+def increment_soft_state(key):
     if aliveNessTable.get(key) is None:
         aliveNessTable.put(key, 0)
     else:
@@ -261,15 +263,15 @@ def epidemic_gossip():
     while True:  # Send to log(N) nodes
         counter = 0
         while counter < int(math.log(int(N), 2)):
-            randomNode = otherNode()
+            randomNode = other_node()
             # print "Iteration: " + str(counter) + "randomNode" + str(randomNode)
             value = aliveNessTable.get_list_of_alive_keys()
             value = ",".join(value)
             wireObj.send_request(Command.ALIVE, str(hashedKeyModN), len(value), value,
                                  threading.currentThread(), randomNode, retrials=2)
-            response_code, value_biggy = wireObj.receive_reply(threading.currentThread(), Command.ALIVE)  # We are not sending the TA
+            response_code, value_biggy = wireObj.receive_reply(threading.currentThread(), Command.ALIVE)
             if response_code == Response.SUCCESS:
-                increamentSoftState(str(randomNode))
+                increment_soft_state(str(randomNode))
                 value_biggy = value_biggy.split(',')
                 update_incoming(value_biggy)
             counter += 1
@@ -291,31 +293,31 @@ def epidemic_anti_antropy(key):
     counter = 0
     while counter < int(math.log(int(N), 2)):
         # print "Iteration: " + str(counter)
-        randomNode = otherNode(key)
-        if key != randomNode:
+        random_node = other_node(key)
+        if key != random_node:
             value = aliveNessTable.get_list_of_alive_keys()
             value = ",".join(value)
             wireObj.send_request(Command.PUSH, str(key), len(value), value,
-                                 threading.currentThread(), randomNode, retrials=2)
+                                 threading.currentThread(), random_node, retrials=2)
             response_code, value_biggy = wireObj.receive_reply(threading.currentThread(), Command.PUSH)
             if response_code == Response.SUCCESS:
-                increamentSoftState(str(randomNode))
+                increment_soft_state(str(random_node))
                 value_biggy = value_biggy.split(',')
                 update_incoming(value_biggy)
         counter += 1
         time.sleep(.2)  # not to overwhelm 1 node in small rings
 
 
-def otherNode(sender="-1"):  # exclude sender as well
+def other_node(sender="-1"):  # exclude sender as well
     tmp = random.randint(0, int(N) - 1)
     # print sender
     if tmp == int(hashedKeyModN) or tmp == int(sender):
-        return otherNode()
+        return other_node()
     else:
         return int(tmp)
 
 
-def iAmAliveAntriAntropy():
+def i_am_alive_antri_antropy():
     global contaminated
     while True:
         if int(N) > 10:
@@ -323,7 +325,7 @@ def iAmAliveAntriAntropy():
         else:
             r = random.randint(2, 5)  # periodically
         time.sleep(r)
-        random_node = otherNode()
+        random_node = other_node()
         value = aliveNessTable.get_list_of_alive_keys()
         value = ",".join(value)
         wireObj.send_request(Command.PUSH, str(hashedKeyModN),
@@ -332,25 +334,24 @@ def iAmAliveAntriAntropy():
                              threading.currentThread(), random_node, retrials=2)
         response_code, value_biggy = wireObj.receive_reply(threading.currentThread(), Command.PUSH)
         if response_code == Response.SUCCESS:
-            increamentSoftState(str(random_node))
+            increment_soft_state(str(random_node))
             value_biggy = value_biggy.split(',')
             update_incoming(value_biggy)
         contaminated = False
 
 
-
-def iAmAliveGossip():
+def i_am_alive_gossip():
     # while True:  # TODO remove if not necassary
-        randomNode = otherNode()
+        randomNode = other_node()
         wireObj.send_request(Command.ALIVE, str(hashedKeyModN), 0, "", threading.currentThread(), randomNode, retrials=2)
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.ALIVE)
         if response_code == Response.SUCCESS:
-            increamentSoftState(str(randomNode))
+            increment_soft_state(str(randomNode))
         # time.sleep(4)
 
 
 # Decrement the soft state
-def decreamentSoftState():
+def decrement_soft_state():
     while True:
         if int(N) > 10:  # for the 50 nodes
             time.sleep(6)
@@ -358,7 +359,6 @@ def decreamentSoftState():
         else:
             time.sleep(3)
             step = 1
-        # if len(aliveNessTable.hashTable.) > 0:
 
         for k in aliveNessTable.hashTable:
             if aliveNessTable.get(k) - step < -1:  # min =-1
@@ -475,7 +475,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, key, 0, "", threading.currentThread(), -1)
-                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.SHUTDOWN)  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.SHUTDOWN)  
                 Print.print_("response:" + Response.print_response(response_code),
                              Print.Main, hashedKeyModN)
             else:
@@ -485,7 +485,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.SHUTDOWN, "AnyKey", 0, "", threading.currentThread(), node_id)
-                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.SHUTDOWN)  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.SHUTDOWN)  
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
         elif nb == "7":   # Ping
             option = raw_input('Main$ Ping by key (y/n)?>')
@@ -497,7 +497,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, key, 0, "", threading.currentThread(), -1)
-                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)  
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
             else:
@@ -507,7 +507,7 @@ def user_input():
                     response_code = Response.SUCCESS
                 else:
                     wireObj.send_request(Command.PING, "AnyKey", 0, "", threading.currentThread(), node_id)
-                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)  # We are not sending the TA
+                    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PING)  
                 Print.print_("response:" + Response.print_response(response_code), Print.Main, hashedKeyModN)
                 if response_code == Response.SUCCESS: Print.print_("Reply:" + str(value[0]), Print.Main, hashedKeyModN)
         elif nb == "8":   # Toggle debugging
@@ -542,8 +542,6 @@ if __name__ == "__main__":
             mode = Mode.planetLab
             print "PlanetLab mode"
 
-
-    # kvTable = ring.Ring()
     kvTable = HashTable.HashTable("KV")
     wireObj = wire.Wire(int(N), hashedKeyModN, mode)
     aliveNessTable = HashTable.HashTable("AliveNess")
@@ -570,11 +568,11 @@ if __name__ == "__main__":
     time.sleep(1.5)
 
     # #  Aliveness thread anti-antropy will run periodically
-    iAmAliveAntriAntropyThread = threading.Thread(target=iAmAliveAntriAntropy)
+    iAmAliveAntriAntropyThread = threading.Thread(target=i_am_alive_antri_antropy)
     iAmAliveAntriAntropyThread.start()
 
     # #  Aliveness-cleaning thread
-    aliveNessCleaning = threading.Thread(target=decreamentSoftState)
+    aliveNessCleaning = threading.Thread(target=decrement_soft_state)
     aliveNessCleaning.start()
 
     # Aliveness thread -Gossip ONLY once on startup
