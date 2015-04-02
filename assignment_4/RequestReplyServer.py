@@ -35,6 +35,7 @@ class RequestReplyServer:
     # message = ""
     # local_port = ""
     cache = HashTable.HashTable("ServerCache")
+    ALIVE_PUSH_DEBUG = False
 
     def __init__(self, timeout):
         # self.udp_ip = udp_ip
@@ -69,6 +70,7 @@ class RequestReplyServer:
                 print "Duplicate MODEEEEEEEEE"
                 msgObj = self.cache.get(str(received_header))
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
+                # if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
                 Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, "
                              + "Reply for command: " + Command.print_command(msgObj.command)
                              + " key: " + msgObj.key

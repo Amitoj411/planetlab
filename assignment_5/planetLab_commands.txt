@@ -1,0 +1,13 @@
+~/Downloads/codeploy/multiquery "sudo /etc/init.d/crond start"
+~/Downloads/codeploy/multiquery "sudo crontab t.txt"
+
+$cat t.txt
+*/1 * * * * echo "hi" > /tmp/tmp.txt
+0,30 * * * * /home/ubc_eece411_7/assignment4/cron.sh
+
+
+$cat cron.sh
+#!/bin/bash
+sudo killall python
+cd /home/ubc_eece411_7/assignment4/
+python /home/ubc_eece411_7/assignment4/main.py 3 &

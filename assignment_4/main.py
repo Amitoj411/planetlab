@@ -354,7 +354,7 @@ def i_am_alive_gossip():
 def decrement_soft_state():
     while True:
         if int(N) > 10:  # for the 50 nodes
-            time.sleep(6)
+            time.sleep(9)
             step = 1
         else:
             time.sleep(3)

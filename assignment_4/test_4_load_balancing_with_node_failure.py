@@ -20,7 +20,7 @@ if __name__ == "__main__":
     for i in range(2):
         value_to_send += "1234567890"
 
-    numberOfMsgs = 99
+    numberOfMsgs = 9
     retrial_times = 0
     sleep_time = 0
     timeout = 1
@@ -48,9 +48,9 @@ if __name__ == "__main__":
         time.sleep(sleep_time)
     print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
 
-    wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
-                         0, timeout, retrials=retrial_times)  # send to node 0
-    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+    # wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+    #                      0, timeout, retrials=retrial_times)  # send to node 0
+    # response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
 
     _ = raw_input('Ready to get?>')
     node_id = 2
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     for seed in range(numberOfMsgs - 1, -1, -1):  # Arbitrary 14 msgs sent
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 1
+        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
                              , timeout, retrials=retrial_times)  # send to node 0
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code) + "\n"

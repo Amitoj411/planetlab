@@ -4,7 +4,7 @@ import Mode
 import ring
 import Command
 from Response import print_response
-
+import threading
 if __name__ == "__main__":
     kvTable = ring.Ring()
     wireObj = wire.Wire(3, 1, Mode.testing)
@@ -19,6 +19,7 @@ if __name__ == "__main__":
         print x
         key = x
         x += 1
-        wireObj.send_request(Command.PUT, str(key), len(value_to_send), value_to_send, 0)  # send to node 0
-        response_code, value = wireObj.receive_reply("127.0.0.1:44444")
+        wireObj.send_request(Command.PUT, str(key), len(value_to_send), value_to_send
+                             , threading.currentThread(), 0)  # send to node 0
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print_response(response_code)

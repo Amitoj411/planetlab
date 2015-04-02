@@ -75,7 +75,7 @@ class Wire:
                 value_length = int(value_length[0])
                 # print value_length
                 value_fmt = str(value_length) + 's'
-                value = struct.unpack(value_fmt, msg[35:35+value_length])
+                value = struct.unpack(value_fmt, msg[35:35 + value_length])
             else:  # Other commands
                 value = ("",)
 

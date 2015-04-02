@@ -1,14 +1,19 @@
 __author__ = 'Owner'
+
+import os
+import sys
+# sys.path.append("../wire.py")
 import wire
 import Mode
 import ring
 import Command
 import time
-from Response import print_response
 
+from Response import print_response
+import threading
 if __name__ == "__main__":
     kvTable = ring.Ring()
-    wireObj = wire.Wire(3, 1, Mode.testing)
+    wireObj = wire.Wire(3, 0, Mode.local)
 
     value_to_send = "Any......."
 
@@ -22,9 +27,10 @@ if __name__ == "__main__":
     for seed in range(0, 100):  # Arbitrary 15 msgs sent
         print "seed:" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, 0, .4)  # send to 0
+        wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, 0,
+                             threading.currentThread(), .4)  # send to 0
         # with timeout = .4
-        response_code, value = wireObj.receive_reply()
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         print print_response(response_code)
 
         node_id += 1
@@ -38,8 +44,9 @@ if __name__ == "__main__":
     for seed in range(99, -1, -1):  # Arbitrary 14 msgs sent
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, 0)  # send to node 0
-        response_code, value = wireObj.receive_reply()
+        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, 0,
+                             threading.currentThread(), .4)  # send to node 0
+        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
         print print_response(response_code)
 
         node_id -= 1
