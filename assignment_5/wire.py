@@ -20,28 +20,30 @@ class Wire:
     fmtReply = "<B"
     mode = ""
     ALIVE_PUSH_DEBUG = False
-    REPLICATE_DEBUG = False
+    REPLICATE_DEBUG = True
     successor = []
-    epidemic_msgs = False
+    id = ""
 
-    def __init__(self, numberOfNodes, hashedKeyModN, mode, successor=[-1, -1, -1], epidemic_msgs=False):
+    def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, successor=[-1, -1, -1]):
         self.numberOfNodes = numberOfNodes
         self.hashedKeyModN = hashedKeyModN #Local node only
         self.mode = mode
         self.successor = successor
-        self.epidemic_msgs = epidemic_msgs # just to have separate port for alive and push msgs
+        self.id = id_  # just to have separate port for alive and push msgs
         # print ">>>>>>>>>>c" + str(hashedKeyModN)
 
     def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=2):
         fmt = self.fmtRequest
-        if command == Command.PUT or command == Command.JOIN or command == Command.ALIVE or command ==Command.PUSH or Command.PUT_HINTED or Command.REPLICATE_PUT:
+        if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command ==Command.PUSH or Command.PUT_HINTED or Command.REPLICATE_PUT:
             fmt += "H" + str(value_length) + 's'
             msg = struct.pack(fmt, command, key, value_length, value)
         else:  # other commands
             fmt += '0s'  # hope to receive value of null with length 1
             msg = struct.pack(fmt, command, key, value_length, str(value))
 
-        if self.REPLICATE_DEBUG or self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT):
+        if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
+                or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
+                or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
             Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
                     +"send_request$ command:" + Command.print_command(command) \
                     + ", key: " + key \
@@ -58,8 +60,11 @@ class Wire:
             ip_port = NodeList.look_up_node_id(node_overwrite, self.mode)
 
         local_ip_port = NodeList.look_up_node_id(self.hashedKeyModN, self.mode)
-        if self.epidemic_msgs:
+        if self.id == "epidemic":
             port = int(ip_port.split(':')[1]) + 1000
+            # print "epidemic"
+        elif self.id == "replicate":
+            port = int(ip_port.split(':')[1]) + 500
         else:
             port = ip_port.split(':')[1]
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
@@ -67,14 +72,18 @@ class Wire:
                                                                             msg,
                                                                             local_ip_port.split(':')[1],
                                                                             timeout,
-                                                                            retrials)
+                                                                            retrials,
+                                                                            self.id)
 
         self.RequestReplyClient_obj.send()
 
     def receive_request(self, hashedKeyMod, cur_thread, handler=""):
         ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
-        if self.epidemic_msgs:
+        if self.id == "epidemic":
             port = int(ip_port.split(':')[1]) + 1000
+            # print "epidemic"
+        elif self.id == "replicate":
+            port = int(ip_port.split(':')[1]) + 500
         else:
             port = ip_port.split(':')[1]
         header, msg, addr = self.RequestReplyServer_obj.receive(port, handler, cur_thread,
@@ -83,7 +92,7 @@ class Wire:
         try:
             command, key = struct.unpack(self.fmtRequest, msg[0:33])
             value_length = 0
-            if command == Command.PUT or command == Command.JOIN or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED or command == Command.REPLICATE_PUT:
+            if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED or command == Command.REPLICATE_PUT:
                 value_length = struct.unpack("H", msg[33:35])
                 value_length = int(value_length[0])
                 # print value_length
@@ -92,7 +101,9 @@ class Wire:
             else:  # Other commands
                 value = ("",)
 
-            if self.REPLICATE_DEBUG or self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT):
+            if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
+                or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
+                or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
                 Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
                         + "receive_request$ "
                         + str(addr)
@@ -114,7 +125,9 @@ class Wire:
 
     def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command):
 
-        if self.REPLICATE_DEBUG or self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT):
+        if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
+                or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
+                or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
             Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
                 "send_reply$ " + str(sender_addr) +
                 ", response_code: " + Response.print_response(response_code) +
@@ -151,7 +164,9 @@ class Wire:
                             value = struct.unpack(value_fmt, request_reply_response[3:])
             except:
                 raise
-        if self.REPLICATE_DEBUG or self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT):
+        if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
+                or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
+                or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
             Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
                 "receive_reply$ response:" + Response.print_response(response_code) + \
                 ", value:" + str(value[0]) + \
@@ -161,7 +176,7 @@ class Wire:
         return response_code, value[0]
 
     # Server
-    RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999)  # listen infinitely
+    RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999, id)  # listen infinitely
 
     # Client
     RequestReplyClient_obj = None

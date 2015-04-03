@@ -8,9 +8,9 @@ PUT = 0x01
 GET = 0x02
 REMOVE = 0x03
 SHUTDOWN = 0x04
-JOIN = 0x20
+JOIN_SUCCESSOR = 0x20
 PING = 0x21
-JOIN_FIN = 0x22
+JOIN_PREDECESSOR = 0x22
 PUSH = 0x23
 ALIVE = 0x24
 
@@ -32,11 +32,11 @@ def print_command(x):
     elif x == 0x04:
         return "SHUTDOWN"
     elif x == 0x20:
-        return "JOIN"
+        return "JOIN_SUCCESSOR"
     elif x == 0x21:
         return "PING"
     elif x == 0x22:
-        return "JOIN_FIN"
+        return "JOIN_PREDECESSOR"
     elif x == 0x23:
         return "PUSH"  # anti-antropy
     elif x == 0x24:

@@ -152,9 +152,9 @@ class NodeCommunication:
             Print.print_("successor found: "+ str(successor) + "\n"
                          ,Print.AvailabilityAndConsistency, localNode)
             wire_obj = wire.Wire(self.numberOfNodes, localNode, self.mode)
-            wire_obj.send_request(Command.JOIN, "anyKey", len(str(localNode)), str(localNode)
+            wire_obj.send_request(Command.JOIN_SUCCESSOR, "anyKey", len(str(localNode)), str(localNode)
                                   , threading.currentThread(), successor)
-            response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN)
+            response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN_SUCCESSOR)
 
         # elif successor == -2:
         #     print "stopped after three searches"

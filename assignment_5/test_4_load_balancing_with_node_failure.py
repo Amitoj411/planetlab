@@ -12,7 +12,7 @@ import Response
 
 if __name__ == "__main__":
     kvTable = ring.Ring()
-    wireObj = wire.Wire(3, 0, Mode.local)
+    wireObj = wire.Wire(3, 0, Mode.local, "main")
 
     value_to_send = "Any......."
 

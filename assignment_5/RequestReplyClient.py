@@ -22,14 +22,16 @@ class RequestReplyClient:
     local_port = ""
     retrials = 2
     ALIVE_PUSH_DEBUG = False
+    id = ""
 
-    def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials):
+    def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials, id_):
         self.udp_ip = udp_ip
         self.udp_port = udp_port
         self.message = message
         self.local_port = local_port
         self.timeout = timeout
         self.retrials = retrials
+        self.id = id_
 
     def send(self):
         # Prepare the header as A1
@@ -63,11 +65,10 @@ class RequestReplyClient:
                     timeout *= 2
                     if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
                         Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
-                              "s. Sending again, trail: " + str(resend_counter-1),
+                              "s. Sending again, trail: " + str(resend_counter-1) + ", MODE: " + self.id,
                                      Print.RequestReplyClient, local_node_id, cur_thread)
                     # print  self.unique_request_id
-                    self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message,
-                                  "client")
+                    self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
                 else:
                     break
         return -1

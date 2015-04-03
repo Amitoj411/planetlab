@@ -19,7 +19,7 @@ class UDPNetwork:
         else:
             self.send_socket.sendto(message, (udp_ip, int(udp_port)))
 
-    # Just for the receiver
+    # Just for the client
     def reply(self, timeout):
         self.send_socket.settimeout(timeout)  # 100 ms be default
         while True:
@@ -27,16 +27,17 @@ class UDPNetwork:
             break
         return reply, addr
 
-    def receive(self, udp_port, timeout, cur_thread, handler=""):  # udp_port to be removed after multi-threaded server is working fine
-        if handler == "": # Single threaded serve
+    # just for the server
+    def receive(self, udp_port, timeout, cur_thread, handler=""):
+        if handler == "":  # Single threaded serve
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.bind(("", int(udp_port)))
-            sock.settimeout(timeout)  # 100 ms be default
+            # sock.settimeout(timeout)  # 100 ms be default
 
             while True:
                 data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
-
                 break
+            sock.close()
             return data, addr
         else:  # Multiple thread server
             # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

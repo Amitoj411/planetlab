@@ -36,13 +36,15 @@ class RequestReplyServer:
     # local_port = ""
     cache = HashTable.HashTable("ServerCache")
     ALIVE_PUSH_DEBUG = False
+    id = ""
 
-    def __init__(self, timeout):
+    def __init__(self, timeout, id_):
         # self.udp_ip = udp_ip
         # self.udp_port = udp_port
         # self.message = message
         # self.local_port = local_port
         self.timeout = timeout
+        self.id = id_
         self.cache.clean()
 
     def send(self, udp_ip, udp_port, message, command, key):
@@ -54,26 +56,25 @@ class RequestReplyServer:
         self.udp_obj.send(udp_ip, int(udp_port), self.unique_request_id + message, "server")
 
 
-
     def receive(self, udp_port, handler, cur_thread, local_node_id, command="", key=""):
         while True:
             data, addr = self.udp_obj.receive(udp_port, self.timeout, cur_thread, handler)
             received_header = data[0:16]
             data = data[16:]
             # Check the server cache before replying back to the client
-            if self.cache.get(str(received_header)) is None:  # msg Does not exist in the cache
-
+            cond = self.cache.get(str(received_header))
+            if cond is None:  # msg Does not exist in the cache
                 self.unique_request_id = received_header
                 return received_header, data, addr
             else:  # duplicate msgs
                 # send the reply again
-                # print "Duplicate MODEEEEEEEEE"
-                msgObj = self.cache.get(str(received_header))
+                # print "Duplicate MODE"
+                msgObj = cond
                 self.udp_obj.send(msgObj.ip, int(msgObj.port), received_header + msgObj.msg, "server")
                 # if self.ALIVE_PUSH_DEBUG or (command != Command.ALIVE and command != Command.PUSH):
                 Print.print_("RequestReplyServer$ Duplicate: " + " Sending reply again, "
                              + "Reply for command: " + Command.print_command(msgObj.command)
-                             + " key: " + msgObj.key
+                             + " key: " + msgObj.key + ",Mode: " + self.id
                              , Print.RequestReplyClient, local_node_id, cur_thread)
 
-                continue
+                # continue

@@ -6,6 +6,7 @@ Main = 01
 AvailabilityAndConsistency = 02
 Wire = 03
 RequestReplyClient = 04
+Cleaning_keys = 05
 
 debug = True
 
@@ -27,3 +28,5 @@ def print_(string, mode, node_id, cur_thread="_"):
                    + string + Colors.Colors.ENDC
         elif mode == RequestReplyClient:
             print Colors.Colors.WARNING + thread + "$RequestReplyClient$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
+        elif mode == Cleaning_keys:
+            print Colors.Colors.FAIL + thread + "$main$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
