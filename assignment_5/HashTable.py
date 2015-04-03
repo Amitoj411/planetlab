@@ -27,7 +27,8 @@ class HashTable:
         return self.hashTable.get(key)
 
     def put(self, key, value):
-        self.hashTable[key.strip()] = value
+        # self.hashTable[key.strip()] = value
+        self.hashTable[key] = value
 
     def _print(self):
         print "     ##############"

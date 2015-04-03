@@ -23,7 +23,7 @@ if __name__ == "__main__":
     numberOfMsgs = 15
     retrial_times = 0
     sleep_time = 0
-    timeout = 1
+    timeout = 2
 
     node_id = 0
     sum = 0
@@ -48,9 +48,11 @@ if __name__ == "__main__":
         time.sleep(sleep_time)
     print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
 
-    # wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
-    #                      0, timeout, retrials=retrial_times)  # send to node 0
-    # response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+    _ = raw_input('Ready to kill 1?>')
+
+    wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+                         1, timeout, retrials=retrial_times)  # send to node 0
+    response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
 
     _ = raw_input('Ready to get?>')
     node_id = 2
