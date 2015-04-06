@@ -12,7 +12,7 @@ import Response
 
 
 
-numberOfMsgs = 15
+numberOfMsgs = 100
 retrial_times = 0
 sleep_time = 0
 timeout = 2
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         print "Total successful PUT: " + str(sum) + "/" + str(numberOfMsgs)
         sum_put[i] = sum
 
-        time.sleep(5)
+        # time.sleep(5)
 
         wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
                              next(i), timeout, retrials=retrial_times)  # kill i+1

@@ -23,7 +23,7 @@ class UDPNetwork:
     def reply(self, timeout):
         self.send_socket.settimeout(timeout)  # 100 ms be default
         while True:
-            reply, addr = self.send_socket.recvfrom(1024)
+            reply, addr = self.send_socket.recvfrom(512)
             break
         return reply, addr
 
@@ -35,7 +35,7 @@ class UDPNetwork:
             # sock.settimeout(timeout)  # 100 ms be default
 
             while True:
-                data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+                data, addr = sock.recvfrom(512)  # buffer size is 1024 bytes
                 break
             sock.close()
             return data, addr
@@ -45,7 +45,7 @@ class UDPNetwork:
             sock = handler.request[1]
             sock.settimeout(timeout)  # 100 ms be default
             while True:
-                data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+                data, addr = sock.recvfrom(512)  # buffer size is 1024 bytes
                 # print "Thread$:cur_thread.name" + cur_thread.name
                 break
             # data = udp_thread.request[0].strip()

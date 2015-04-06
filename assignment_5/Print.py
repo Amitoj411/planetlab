@@ -1,6 +1,7 @@
 __author__ = 'Owner'
 
 import Colors
+import time
 
 Main = 01
 AvailabilityAndConsistency = 02
@@ -20,13 +21,14 @@ def print_(string, mode, node_id, cur_thread="_"):
             thread = cur_thread.getName()
 
         if mode == Main:
-            print thread + "$main$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
+            print thread + "$main$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == Wire:
-            print Colors.Colors.OKGREEN + thread + "$Wire$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
+            print Colors.Colors.OKGREEN + thread + "$Wire$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == AvailabilityAndConsistency:
             print Colors.Colors.OKBLUE + thread + "$AvailabilityAndConsistency$[node_id:" + node_id + "] " \
-                   + string + Colors.Colors.ENDC
+                   + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == RequestReplyClient:
-            print Colors.Colors.WARNING + thread + "$RequestReplyClient$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
+            print Colors.Colors.WARNING + thread + "$RequestReplyClient$[node_id:" + node_id + "] " + \
+                  "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == Cleaning_keys:
-            print Colors.Colors.FAIL + thread + "$main$[node_id:" + node_id + "] " + string + Colors.Colors.ENDC
+            print Colors.Colors.FAIL + thread + "$main$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC

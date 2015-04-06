@@ -19,12 +19,12 @@ class Wire:
     fmtRequest = "<B32s"  # Format of Data to be cont. later in the function
     fmtReply = "<B"
     mode = ""
-    ALIVE_PUSH_DEBUG = False
+    ALIVE_PUSH_DEBUG = True
     REPLICATE_DEBUG = True
     successor = []
     id = ""
 
-    def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, successor=[-1, -1, -1]):
+    def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, successor=[-1, -1]):
         self.numberOfNodes = numberOfNodes
         self.hashedKeyModN = hashedKeyModN #Local node only
         self.mode = mode
@@ -44,7 +44,7 @@ class Wire:
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
                 or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
-            Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
+            Print.print_(str(self.successor[0]) + "," + str(self.successor[1])
                     +"send_request$ command:" + Command.print_command(command) \
                     + ", key: " + key \
                     + ", value_length: " \
@@ -104,7 +104,7 @@ class Wire:
             if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
                 or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
-                Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
+                Print.print_(str(self.successor[0]) + "," + str(self.successor[1])
                         + "receive_request$ "
                         + str(addr)
                         + ", Command Received:"
@@ -128,7 +128,7 @@ class Wire:
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
                 or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
-            Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
+            Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) +
                 "send_reply$ " + str(sender_addr) +
                 ", response_code: " + Response.print_response(response_code) +
                 ", value: " + value +
@@ -167,7 +167,7 @@ class Wire:
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
                 or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):
-            Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) + "," + str(self.successor[2]) + ","
+            Print.print_(str(self.successor[0]) + "," + str(self.successor[1]) +
                 "receive_reply$ response:" + Response.print_response(response_code) + \
                 ", value:" + str(value[0]) + \
                 ", mode: " + Mode.print_mode(self.mode) + "\n"\

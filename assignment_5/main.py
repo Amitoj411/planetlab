@@ -38,7 +38,7 @@ def search(key, retrieve_mode="ping"):
     # Key Locally Stored - Preliminary check to see if you are the node the key should be stored on.
     if cursor == local_node:
         Print.print_("Local Key" + "\n",
-                     Print.AvailabilityAndConsistency, local_node)
+                     Print.AvailabilityAndConsistency, local_node, threading.currentThread())
         return local_node
 
     # cursor = hashedNodeID           # Cursor goes through the range of nodes in our system
@@ -57,7 +57,7 @@ def search(key, retrieve_mode="ping"):
             return cursor
         Print.print_("Searching for Node[table]:  " + str(cursor) +
                      ", Status: " + str(aliveNessTable.get(str(cursor))),
-                     Print.AvailabilityAndConsistency, local_node)
+                     Print.AvailabilityAndConsistency, local_node, threading.currentThread())
 
 
 
@@ -100,7 +100,7 @@ def successor(local, retrieve_mode="ping"):
                 (local_node < cursor and (int(N) - cursor) + local_node > 3) or retrieve_mode == 'table':
                 Print.print_("Searching for Node[table]:  " + str(cursor) +
                             ", Status: " + str(aliveNessTable.get(str(cursor))),
-                             Print.AvailabilityAndConsistency, local_node)
+                             Print.AvailabilityAndConsistency, local_node, threading.currentThread())
                 # Give it some time to populate the table
                 time.sleep(.2)
                 if aliveNessTable.get(str(cursor)) >= 0:
@@ -108,7 +108,7 @@ def successor(local, retrieve_mode="ping"):
 
         else:
             wire_obj = wire.Wire(int(N), local_node, mode, "main")
-            Print.print_("Searching for Node[PING]:  " + str(cursor), Print.AvailabilityAndConsistency, local_node)
+            Print.print_("Searching for Node[PING]:  " + str(cursor), Print.AvailabilityAndConsistency, local_node, threading.currentThread())
             wire_obj.send_request(Command.PING, "Anykey", 0, "", threading.currentThread(), cursor)
             response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.PING)
             # print "Response: "+ Response.print_response(response_code)
@@ -143,7 +143,7 @@ def predecessor(local, retrieve_mode="ping"):
                 (cursor < local_node and (int(N) - local_node) + cursor > 3) or retrieve_mode == 'table':
                 Print.print_("Searching for Node[table]:  " + str(cursor) +
                             ", Status: " + str(aliveNessTable.get(str(cursor))),
-                             Print.AvailabilityAndConsistency, local_node)
+                             Print.AvailabilityAndConsistency, local_node, threading.currentThread())
                 # Give it some time to populate the table
                 time.sleep(.2)
                 if aliveNessTable.get(str(cursor)) >= 0:
@@ -151,7 +151,7 @@ def predecessor(local, retrieve_mode="ping"):
 
         else:
             wire_obj = wire.Wire(int(N), local_node, mode, "main")
-            Print.print_("Searching for Node[PING]:  " + str(cursor), Print.AvailabilityAndConsistency, local_node)
+            Print.print_("Searching for Node[PING]:  " + str(cursor), Print.AvailabilityAndConsistency, local_node, threading.currentThread())
             wire_obj.send_request(Command.PING, "Anykey", 0, "", threading.currentThread(), cursor)
             response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.PING)
             # print "Response: "+ Response.print_response(response_code)
@@ -169,14 +169,14 @@ def join_successor():  # To get the local node keys. send to 1 sucessor (i.e. 1 
     local_node = int(hashedKeyModN)
     successor_ = successor(local_node)  # search by node id
     if successor_ != local_node:  # else its only me in the network
-        Print.print_("successor found: "+ str(successor_) + "\n", Print.AvailabilityAndConsistency, local_node)
+        Print.print_("successor found: "+ str(successor_) + "\n", Print.AvailabilityAndConsistency, local_node, threading.currentThread())
         wire_obj = wire.Wire(int(N), local_node, mode, "main")
         wire_obj.send_request(Command.JOIN_SUCCESSOR, "anyKey", len(str(local_node)), str(local_node)
                               , threading.currentThread(), successor_)
         response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN_SUCCESSOR)
 
     Print.print_("Join SUCCESSOR synchronization is finished"+ "\n"\
-         ,Print.AvailabilityAndConsistency, local_node)
+         ,Print.AvailabilityAndConsistency, local_node, threading.currentThread())
 
 
 def join_predecessor():  # To get the replicated keys from others #TODO send 3 predessors (i.e. 1 send to 2, 3, and 4)
@@ -190,7 +190,7 @@ def join_predecessor():  # To get the replicated keys from others #TODO send 3 p
             wire_obj.send_request(Command.JOIN_PREDECESSOR, "anyKey", len(str(local_node)), str(local_node)
                                   , threading.currentThread(), x)
             response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN_PREDECESSOR)
-            time.sleep(2)
+            time.sleep(.2)
     # predecessor_1 = predecessor(local_node)  # search by node id
     # if predecessor_1 != local_node:  # else its only me in the network
     #     Print.print_("predecessor_ found: "+ str(predecessor_1) + "\n", Print.AvailabilityAndConsistency, local_node)
@@ -216,27 +216,27 @@ def join_predecessor():  # To get the replicated keys from others #TODO send 3 p
     #     response_code, value = wire_obj.receive_reply(threading.currentThread(), Command.JOIN_PREDECESSOR)
 
     Print.print_("Join PREDECESSOR synchronization is finished"+ "\n"\
-         ,Print.AvailabilityAndConsistency, local_node)
+         ,Print.AvailabilityAndConsistency, local_node, threading.currentThread())
 
 # Get the last three healthy adjacent
-successor_list = [-1, -1, -1]
+successor_list = [-1, -1]
 def update_successor_list():
     local_node = int(hashedKeyModN)
     successor_list[0] = successor(local_node, 'table')
     if successor_list[0] != -1 and successor_list[0] != int(hashedKeyModN):
         successor_list[1] = successor(successor_list[0], 'table')
-    if successor_list[1] != -1 and successor_list[0] != int(hashedKeyModN):
-        successor_list[2] = successor(successor_list[1], 'table')
+    # if successor_list[1] != -1 and successor_list[0] != int(hashedKeyModN):
+    #     successor_list[2] = successor(successor_list[1], 'table')
 
 # Get the last three healthy adjacent
-predecessor_list = [-1, -1, -1]
+predecessor_list = [-1, -1]
 def update_predecessor_list():
     local_node = int(hashedKeyModN)
     predecessor_list[0] = predecessor(local_node, 'ping')
     if predecessor_list[0] != -1 and predecessor_list[0] != int(hashedKeyModN):
         predecessor_list[1] = predecessor(predecessor_list[0], 'ping')
-    if predecessor_list[1] != -1 and predecessor_list[1] != int(hashedKeyModN):
-        predecessor_list[2] = predecessor(predecessor_list[1], 'ping')
+    # if predecessor_list[1] != -1 and predecessor_list[1] != int(hashedKeyModN):
+    #     predecessor_list[2] = predecessor(predecessor_list[1], 'ping')
 
 
 def replicate(command, key, value=""):
@@ -269,10 +269,15 @@ def replicate(command, key, value=""):
                 # No replications then!
 
 
-def off_load_get_thread(key, sender_addr, cur_thread):
-    response, value = off_load_get(key)
-    value_to_send = value
-    wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET)
+def off_load_get_thread(key, sender_addr):
+    # if item is replicated it might be stored locally
+    response_local, value_local = try_to_get(key)
+    if response_local == Response.SUCCESS:
+        wireObj.send_reply(sender_addr, key, response_local, len(value_local), value_local, threading.currentThread(), Command.GET)
+    else:
+        response, value = off_load_get(key)
+        value_to_send = value
+        wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, threading.currentThread(), Command.GET)
 
 
 def off_load_get(key):
@@ -306,9 +311,11 @@ def off_load_get(key):
     return response_code, value
 
 
-def off_load_put_thread(key, value, sender_addr, cur_thread):
+def off_load_put_thread(key, value, sender_addr):
+    # non-blocking
+    wireObj.send_reply(sender_addr, key, Response.SUCCESS, 0, "", threading.currentThread(), Command.PUT)
+    # print "reply is sent now replicating"
     response = off_load_put(key, value)
-    wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT)
 
 
 def off_load_put(key, value):
@@ -340,15 +347,16 @@ def off_load_put(key, value):
     else:  # local
         # print "local"
         response_code = try_to_put(key, value)
-        # replicate(Command.PUT, key, value)
         replicate_put_thread = threading.Thread(target=replicate, args=(Command.PUT, key, value))
         replicate_put_thread.start()
     return response_code
 
 
-def off_load_remove_thread(key, sender_addr, cur_thread):
+def off_load_remove_thread(key, sender_addr):
+    # non blocking
+    wireObj.send_reply(sender_addr, key, Response.SUCCESS, 0, "", threading.currentThread(), Command.REMOVE)
     response = off_load_remove(key)
-    wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REMOVE)
+
 
 
 def off_load_remove(key):
@@ -408,8 +416,8 @@ def clean_up_replicated_keys():
 
                 if int(hashedKeyModN) not in s \
                     and aliveNessTable.get(str(s[0])) >= 0\
-                    and aliveNessTable.get(str(s[1])) >= 0\
-                    and aliveNessTable.get(str(s[2])) >= 0:
+                    and aliveNessTable.get(str(s[1])) >= 0:
+                    # and aliveNessTable.get(str(s[2])) >= 0:
                     Print.print_("clean_up_replicated_keys" + ",Key: " + key + ",Node: " + str(node_id) + ", get_direct_successor: " + str(s), Print.Cleaning_keys, hashedKeyModN, threading.currentThread())
                     # wireObj_replicate.send_request(Command.REPLICATE_PUT, key, len(value), value, threading.currentThread(), s[2])
                     # response_code_2, value_ = wireObj_replicate.receive_reply(threading.currentThread(), Command.REPLICATE_PUT)
@@ -427,13 +435,13 @@ def clean_up_replicated_keys():
 
 # Direct successor are the most closed ones
 def get_direct_successor(key, node_id=""):
-    s = [-1, -1, -1]
+    s = [-1, -1]
     if node_id == "":
         node_id = hash(key) % int(N)
 
     s[0] = prev(node_id)
     s[1] = prev(s[0])
-    s[2] = prev(s[1])
+    # s[2] = prev(s[1])
     # print "s: "+ str(s)
     return s
 
@@ -523,7 +531,7 @@ def receive_request(handler=""):
         cur_thread = threading.currentThread()
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, cur_thread, handler)
         if command == Command.PUT:
-            offload_thread = threading.Thread(target=off_load_put_thread, args=(key, value, sender_addr, cur_thread))
+            offload_thread = threading.Thread(target=off_load_put_thread, args=(key, value, sender_addr))
             offload_thread.start()
 
             # response = off_load_put(key, value)
@@ -536,7 +544,7 @@ def receive_request(handler=""):
             replicate_thread.start()
 
         elif command == Command.GET:
-            offload_get_thread = threading.Thread(target=off_load_get_thread, args=(key, sender_addr, cur_thread))
+            offload_get_thread = threading.Thread(target=off_load_get_thread, args=(key, sender_addr))
             offload_get_thread.start()
             # response, value = off_load_get(key)
             # value_to_send = value
@@ -547,7 +555,7 @@ def receive_request(handler=""):
             wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET)
 
         elif command == Command.REMOVE:
-            offload_remove_thread = threading.Thread(target=off_load_remove_thread, args=(key, sender_addr, cur_thread))
+            offload_remove_thread = threading.Thread(target=off_load_remove_thread, args=(key, sender_addr))
             offload_remove_thread.start()
             # response = off_load_remove(key)
             # wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REMOVE)
@@ -555,7 +563,7 @@ def receive_request(handler=""):
         elif command == Command.REMOVE_HINTED:
             response = try_to_remove(key)
             wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REMOVE)
-            # replicate(Command.REMOVE, key, value)
+
             replicate_thread = threading.Thread(target=replicate, args=(Command.REMOVE, key))
             replicate_thread.start()
 
@@ -780,7 +788,7 @@ def try_to_get(key):
     value_to_send = ("", )
     try:
         value = kvTable.get(key)
-        Print.print_("KV[" + str(key) + "]=" + str(kvTable.get(key)), Print.Main, hashedKeyModN)
+        Print.print_("KV[" + str(key) + "]=" + str(kvTable.get(key)), Print.Main, hashedKeyModN, threading.currentThread())
         if value is None:
             value_to_send = ("", )
             raise KeyError
@@ -861,7 +869,7 @@ def user_input():
             value = raw_input('Main$ Please enter the value>')
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_put(key, value)
-                # replicate(Command.PUT, key, value)
+
                 replicate_thread = threading.Thread(target=replicate, args=(Command.PUT, key, value))
                 replicate_thread.start()
             else:
@@ -873,7 +881,7 @@ def user_input():
             # Check if the key is stored locally else send a request
             if hash(key) % int(N) == int(hashedKeyModN):
                 response_code = try_to_remove(key)
-                # replicate(Command.REMOVE, key)
+
                 replicate_thread = threading.Thread(target=replicate, args=(Command.REMOVE, key))
                 replicate_thread.start()
             else:
@@ -949,7 +957,7 @@ if __name__ == "__main__":
     opts, args = getopt.getopt(sys.argv, "", [""])
     N = args[1]
     mode = ""
-    number_of_successors = 3
+    # number_of_successors = 2
     Print.debug = True
     if len(args) > 2:
         hashedKeyModN = args[2]
