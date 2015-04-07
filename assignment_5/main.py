@@ -55,9 +55,9 @@ def search(key, retrieve_mode="ping"):
         #         (localNode < cursor and (int(N) - cursor) + localNode > 3) or retrieve_mode == 'table':
         if aliveNessTable.get(str(cursor)) >= 0:
             return cursor
-        Print.print_("Searching for Node[table]:  " + str(cursor) +
-                     ", Status: " + str(aliveNessTable.get(str(cursor))),
-                     Print.AvailabilityAndConsistency, local_node, threading.currentThread())
+        # Print.print_("Searching for Node[table]:  " + str(cursor) +
+        #              ", Status: " + str(aliveNessTable.get(str(cursor))),
+        #              Print.AvailabilityAndConsistency, local_node, threading.currentThread())
 
 
 
@@ -98,7 +98,7 @@ def successor(local, retrieve_mode="ping"):
         # For distance > 3 Check if the cursor in the aliveness table first. If not alive, to Try to PING the cursor
         if (local_node > cursor and local_node - cursor > 3) or \
                 (local_node < cursor and (int(N) - cursor) + local_node > 3) or retrieve_mode == 'table':
-                Print.print_("Searching for Node[table]:  " + str(cursor) +
+                Print.print_("Searching2 for Node[table]:  " + str(cursor) +
                             ", Status: " + str(aliveNessTable.get(str(cursor))),
                              Print.AvailabilityAndConsistency, local_node, threading.currentThread())
                 # Give it some time to populate the table
@@ -141,9 +141,9 @@ def predecessor(local, retrieve_mode="ping"):
         # For distance > 3 Check if the cursor in the aliveness table first. If not alive, to Try to PING the cursor
         if (cursor > local_node  and cursor - local_node > 3) or \
                 (cursor < local_node and (int(N) - local_node) + cursor > 3) or retrieve_mode == 'table':
-                Print.print_("Searching for Node[table]:  " + str(cursor) +
-                            ", Status: " + str(aliveNessTable.get(str(cursor))),
-                             Print.AvailabilityAndConsistency, local_node, threading.currentThread())
+                # Print.print_("Searching for Node[table]:  " + str(cursor) +
+                #             ", Status: " + str(aliveNessTable.get(str(cursor))),
+                #              Print.AvailabilityAndConsistency, local_node, threading.currentThread())
                 # Give it some time to populate the table
                 time.sleep(.2)
                 if aliveNessTable.get(str(cursor)) >= 0:
@@ -241,7 +241,7 @@ def update_predecessor_list():
 
 def replicate(command, key, value=""):
     # global successor_list
-    print "replicating: "
+    Print.print_("replicating: ", Print.Main, hashedKeyModN, threading.currentThread())
     if command == Command.PUT:
         # put on the next three nodes
         update_successor_list()
@@ -259,13 +259,13 @@ def replicate(command, key, value=""):
         # remove on the next three nodes
         update_successor_list()
         for x in successor_list:
-            if successor_list != int(hashedKeyModN):
+            if x != int(hashedKeyModN) and x != -1:
                 wireObj_replicate.send_request(Command.REPLICATE_REMOVE, key, len(value), value, threading.currentThread(), x)
                 response_code, value = wireObj_replicate.receive_reply(threading.currentThread(), Command.REPLICATE_REMOVE)
                 # if response_code != Response.SUCCESS  # Check aliveness and dix the successor list
                 # There is no nodes in the network"
             else:
-                print "No successors found. No replicaiton"
+                Print.print_("No successors found. No replicaiton", Print.Main, hashedKeyModN, threading.currentThread())
                 # No replications then!
 
 
@@ -312,10 +312,12 @@ def off_load_get(key):
 
 
 def off_load_put_thread(key, value, sender_addr):
+    # print threading.currentThread().getName(), 'Starting'
     # non-blocking
     wireObj.send_reply(sender_addr, key, Response.SUCCESS, 0, "", threading.currentThread(), Command.PUT)
     # print "reply is sent now replicating"
     response = off_load_put(key, value)
+    # print threading.currentThread().getName(), 'Exiting'
 
 
 def off_load_put(key, value):
@@ -529,13 +531,17 @@ contaminated = False
 def receive_request(handler=""):
     while True:
         cur_thread = threading.currentThread()
+        # Print.print_("Waiting for a request", Print.Main, hashedKeyModN, cur_thread)
         command, key, value_length, value, sender_addr = wireObj.receive_request(hashedKeyModN, cur_thread, handler)
         if command == Command.PUT:
-            offload_thread = threading.Thread(target=off_load_put_thread, args=(key, value, sender_addr))
-            offload_thread.start()
+            # If you do the next, all msgs received but not, all replies sent back, but not all received (receiver problem ?)
+            offload_put_thread = threading.Thread(target=off_load_put_thread, args=(key, value, sender_addr))
+            offload_put_thread.start()
 
+
+            # If you do the next, some msgs will be not receieved at all!
+            # wireObj.send_reply(sender_addr, key, Response.SUCCESS, 0, "", cur_thread, Command.PUT)
             # response = off_load_put(key, value)
-            # wireObj.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.PUT)
 
         elif command == Command.PUT_HINTED:
             response = try_to_put(key, value)
@@ -620,7 +626,12 @@ def update_incoming(list_of_alive_nodes):
     global contaminated
     for x in list_of_alive_nodes:  # Increment the status of all alive nodes
         if x is not None and x is not "":
-            k, count = x.split(':')
+            try:
+                k, count = x.split(':')
+            except:
+                print "x >>:", x
+
+                raise
             if int(k) != int(hashedKeyModN) and k != "":
                 if aliveNessTable.get(k) is not None:
                     if int(count) > int(aliveNessTable.get(k)):
@@ -766,12 +777,12 @@ def i_am_alive_gossip():
 # Decrement the soft state
 def decrement_soft_state():
     while True:
-        # if int(N) > 10:  # for the 50 nodes
-        #     time.sleep(6)
-        #     step = 1
-        # else:
-        time.sleep(2)
-        step = 1
+        if int(N) > 10:  # for the 50 nodes
+            time.sleep(6)
+            step = 1
+        else:
+            time.sleep(2)
+            step = 1
 
         for k in aliveNessTable.hashTable:
             if aliveNessTable.get(k) - step < -1:  # min =-1
@@ -830,7 +841,7 @@ def try_to_put(key, value):
         #     raise Exceptions.OutOfSpaceException()
         # else:
         kvTable.put(key, value)
-        Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN)
+        Print.print_(" KV[" + str(key) + "]=" + value, Print.Main, hashedKeyModN, threading.currentThread())
         response = Response.SUCCESS
     except IOError:
         response = Response.OUTOFSPACE

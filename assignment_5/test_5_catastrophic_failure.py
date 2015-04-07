@@ -12,10 +12,10 @@ import Response
 
 
 
-numberOfMsgs = 15
+numberOfMsgs = 200
 retrial_times = 0
-sleep_time = 0
-timeout = .5
+sleep_time = .05
+timeout = 1
 number_of_nodes = 5
 # observer_node = 0
 

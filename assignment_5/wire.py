@@ -19,10 +19,10 @@ class Wire:
     fmtRequest = "<B32s"  # Format of Data to be cont. later in the function
     fmtReply = "<B"
     mode = ""
-    ALIVE_PUSH_DEBUG = True
-    REPLICATE_DEBUG = True
+    ALIVE_PUSH_DEBUG = False
+    REPLICATE_DEBUG = False
     successor = []
-    id = ""
+
 
     def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, successor=[-1, -1]):
         self.numberOfNodes = numberOfNodes
@@ -30,7 +30,12 @@ class Wire:
         self.mode = mode
         self.successor = successor
         self.id = id_  # just to have separate port for alive and push msgs
-        # print ">>>>>>>>>>c" + str(hashedKeyModN)
+        # Server
+        self.RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999, id)  # listen infinitely
+
+        # Client
+        self.RequestReplyClient_obj = None
+
 
     def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=2):
         fmt = self.fmtRequest
@@ -144,7 +149,7 @@ class Wire:
             msg = struct.pack(fmt, response_code, value_length, value)
         else:
             msg = struct.pack(fmt, response_code)
-        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key)
+        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key, self.hashedKeyModN)
 
     def receive_reply(self, cur_thread, command):
         request_reply_response = self.RequestReplyClient_obj.receive_reply(command, self.hashedKeyModN, cur_thread)
@@ -175,8 +180,4 @@ class Wire:
             
         return response_code, value[0]
 
-    # Server
-    RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999, id)  # listen infinitely
 
-    # Client
-    RequestReplyClient_obj = None

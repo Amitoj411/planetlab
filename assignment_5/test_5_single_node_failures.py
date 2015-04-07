@@ -14,15 +14,15 @@ import Response
 
 numberOfMsgs = 100
 retrial_times = 0
-sleep_time = 0
+sleep_time = .05
 timeout = 2
 number_of_nodes = 5
 # observer_node = 0
 
 
 sum_put = [-1] * number_of_nodes
-sum_get = [-1]* number_of_nodes
-sum_remove = [-1]* number_of_nodes
+sum_get = [-1] * number_of_nodes
+sum_remove = [-1] * number_of_nodes
 
 def next(cursor):
     if cursor == int(number_of_nodes) - 1:

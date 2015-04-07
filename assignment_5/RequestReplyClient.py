@@ -11,20 +11,21 @@ import Command
 
 
 class RequestReplyClient:
-    udp_obj = udpSendRecieve.UDPNetwork()
+    # udp_obj = udpSendRecieve.UDPNetwork()
     timeout = .1  # 100 ms by default unless changed by constructor
     # For retransmission
-    unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
+    # unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
     # unique_request_id = []# last id was send. Used to match the most recent received one
     udp_ip = ""
     udp_port = ""
-    message = ""
+    # message = ""
     local_port = ""
     retrials = 2
     ALIVE_PUSH_DEBUG = False
-    id = ""
+    # id = ""
 
     def __init__(self, udp_ip, udp_port, message, local_port, timeout, retrials, id_):
+        self.udp_obj = udpSendRecieve.UDPNetwork()
         self.udp_ip = udp_ip
         self.udp_port = udp_port
         self.message = message
@@ -32,6 +33,7 @@ class RequestReplyClient:
         self.timeout = timeout
         self.retrials = retrials
         self.id = id_
+        self.unique_request_id = array.array('b')  # last id was send. Used to match the most recent received one
 
     def send(self):
         # Prepare the header as A1
@@ -44,6 +46,8 @@ class RequestReplyClient:
                                  random.randint(0, 100))
 
         self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
+        # print "will be waiting for: " + self.unique_request_id
+
 
     def receive_reply(self, command, local_node_id="", cur_thread=""):
         resend_counter = 1
@@ -56,9 +60,9 @@ class RequestReplyClient:
                 # print "payload: " + payload
                 if self.unique_request_id == received_header:
                     return payload
-                # else:
+                else:
                     # TODO check the bad cases
-                    # print "bad 16:" + received_header
+                    print "bad 16:" , received_header, "expecting: " , self.unique_request_id
             except socket.error:
                 if self.retrials != 0:
                     resend_counter += 1
@@ -67,7 +71,6 @@ class RequestReplyClient:
                         Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
                               "s. Sending again, trail: " + str(resend_counter-1) + ", MODE: " + self.id,
                                      Print.RequestReplyClient, local_node_id, cur_thread)
-                    # print  self.unique_request_id
                     self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
                 else:
                     break

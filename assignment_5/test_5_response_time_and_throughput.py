@@ -9,14 +9,18 @@ import time
 from Response import print_response
 import threading
 import Response
+import math
+import random
 
 
 
-numberOfMsgs = 15
+numberOfMsgs = 1000
 retrial_times = 0
-sleep_time = .05
+sleep_time = .1
 timeout = 2
-number_of_nodes = 5
+number_of_nodes = 3
+variant = "same_node"  # Node zero
+# variant = "different_nodes"
 # observer_node = 0
 
 
@@ -57,15 +61,25 @@ if __name__ == "__main__":
     sum_time_put_fail = 0
     max_time_put_fail = -1
     min_time_put_fail = 9999999
+    sum_time_put_success_list = []
     for seed in range(0, numberOfMsgs):
         print "seed:" + str(seed) + ", node id:" + str(node_id)
-        wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+        if variant == "same_node":
+            wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
                              0, timeout, retrials=retrial_times)  # send to node 0
-        start = time.time()
-        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+        else:
+            random_node = random.randint(0, int(number_of_nodes) - 1)
+            wireObj.send_request(Command.PUT, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+                             random_node, timeout, retrials=retrial_times)  # send to node 0
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
+
         if response_code == Response.SUCCESS:
             dt = int((time.time() - start) * 1000)
             sum_time_put_success += dt
+            sum_time_put_success_list.append(dt)
             if dt > max_time_put_success:
                 max_time_put_success = dt
             if dt < min_time_put_success:
@@ -112,15 +126,24 @@ if __name__ == "__main__":
     sum_time_get_fail = 0
     max_time_get_fail = -1
     min_time_get_fail = 9999999
+    sum_time_get_success_list = []
     for seed in range(numberOfMsgs - 1, -1, -1):  # Arbitrary 14 msgs sent
         print "seed(backward):" + str(seed) + ", node id:" + str(node_id)
 
-        wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
-                             , timeout, retrials=retrial_times)  # send to node 0
-        start = time.time()
-        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
+        if variant == "same_node":
+            wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(), 0
+                                 , timeout, retrials=retrial_times)  # send to node 0
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.GET)
+        else:
+            random_node = random.randint(0, int(number_of_nodes) - 1)
+            wireObj.send_request(Command.GET, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+                             random_node, timeout, retrials=retrial_times)  # send to node 0
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         if response_code == Response.SUCCESS:
             dt = int((time.time() - start) * 1000)
+            sum_time_get_success_list.append(dt)
             sum_time_get_success += dt
             if dt > max_time_get_success:
                 max_time_get_success = dt
@@ -159,14 +182,23 @@ if __name__ == "__main__":
     sum_time_remove_fail = 0
     max_time_remove_fail = -1
     min_time_remove_fail = 9999999
+    sum_time_remove_success_list = []
     for seed in range(0, numberOfMsgs):
         print "seed:" + str(seed) + ", node id:" + str(node_id)
-        wireObj.send_request(Command.REMOVE, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
-                             0, timeout, retrials=retrial_times)  # send to node 0
-        start = time.time()
-        response_code, value = wireObj.receive_reply(threading.currentThread(), Command.REMOVE)
+        if variant == "same_node":
+            wireObj.send_request(Command.REMOVE, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+                                 0, timeout, retrials=retrial_times)  # send to node 0
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.REMOVE)
+        else:
+            random_node = random.randint(0, int(number_of_nodes) - 1)
+            wireObj.send_request(Command.REMOVE, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
+                             random_node, timeout, retrials=retrial_times)  # send to node 0
+            start = time.time()
+            response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
         if response_code == Response.SUCCESS:
             dt = int((time.time() - start) * 1000)
+            sum_time_remove_success_list.append(dt)
             sum_time_remove_success += dt
             if dt > max_time_remove_success:
                 max_time_remove_success = dt
@@ -194,20 +226,25 @@ if __name__ == "__main__":
             print "************************************************************"
             print "************************************************************"
         time.sleep(sleep_time)
-    sum_remove=sum
+    sum_remove = sum
 
-    # for i in range(0, number_of_nodes - 1):
-    # for i in range(0, 1):
-    #     print "Round: " + str(i + 1)
+
     print "Total successful PUT: " + str(sum_put) + "/" + str(numberOfMsgs)
-    # print "\n"
-    print "sum_time_add_success: ", sum_time_put_success
-    print "max_time_add_success: ", max_time_put_success
-    print "min_time_add_success: ", min_time_put_success
+    print "Percentage of correctly served requests", sum_put/numberOfMsgs * 100.0, '%100'
+    print "sum_time_add_success: ", sum_time_put_success, 'ms'
+    print "max_time_add_success: ", max_time_put_success, 'ms'
+    print "min_time_add_success: ", min_time_put_success, 'ms'
     if sum_get != 0:
-        print "AVG:: " + str(sum_time_put_success/sum_put)
+        avg = sum_time_put_success / sum_put * 1.0
+        print "AVG:: " + str(avg), 'ms'
+        sum_ = 0
+        for x in sum_time_put_success_list:
+            sum_ += math.pow(x - avg, 2)
+        print "Std. Var. :: " + str(math.sqrt(sum_/sum_get)), 'ms'
     else:
         print "AVG:: " + 'zero'
+    print "Good put::", avg, 'ms'
+    print "\n"
     print "sum_time_add_fail: ", sum_time_put_fail
     print "max_time_add_fail: ", max_time_put_fail
     print "min_time_add_fail: ", min_time_put_fail
@@ -217,16 +254,25 @@ if __name__ == "__main__":
         print "AVG:: " + "zero"
 
     print "\n"
+    print "\n"
 
 
     print "Total successful GET: " + str(sum_get) + "/" + str(numberOfMsgs)
-    print "sum_time_get_success: ", sum_time_get_success
-    print "max_time_get_success: ", max_time_get_success
-    print "min_time_get_success: ", min_time_get_success
+    print "Percentage of correctly served requests", sum_get / numberOfMsgs * 100.0, '%100'
+    print "sum_time_get_success: ", sum_time_get_success, 'ms'
+    print "max_time_get_success: ", max_time_get_success, 'ms'
+    print "min_time_get_success: ", min_time_get_success, 'ms'
     if sum_get != 0:
-        print "AVG:: " + str(sum_time_get_success/sum_get)
+        avg = sum_time_get_success / sum_put * 1.0
+        print "AVG:: " + str(avg), 'ms'
+        sum_ = 0
+        for x in sum_time_get_success_list:
+            sum_ += math.pow(x - avg, 2)
+        print "Std. Var. :: " + str(math.sqrt(sum_/sum_get)), 'ms'
     else:
         print "AVG:: ", 'zero'
+    print "Good put::", avg, 'ms'
+    print "\n"
     print "sum_time_get_fail: ", sum_time_get_fail
     print "max_time_get_fail: ", max_time_get_fail
     print "min_time_get_fail: ", min_time_get_fail
@@ -235,16 +281,25 @@ if __name__ == "__main__":
     else:
         print "AVG:: ", 'zero'
     print "\n"
+    print "\n"
+
 
     print "Total successful REMOVE: " + str(sum_remove) + "/" + str(numberOfMsgs)
-    print "sum_time_remove_success: ", sum_time_remove_success
-    print "max_time_remove_success: ", max_time_remove_success
-    print "min_time_remove_success: ", min_time_remove_success
+    print "Percentage of correctly served requests", sum_remove / numberOfMsgs * 100.0, '%100'
+    print "sum_time_remove_success: ", sum_time_remove_success, 'ms'
+    print "max_time_remove_success: ", max_time_remove_success, 'ms'
+    print "min_time_remove_success: ", min_time_remove_success, 'ms'
     if sum_remove != 0:
-        print "AVG:: " + str(sum_time_remove_success/sum_remove)
+        avg = sum_time_remove_success / sum_remove * 1.0
+        print "AVG:: " + str(avg), 'ms'
+        sum_ = 0
+        for x in sum_time_remove_success_list:
+            sum_ += math.pow(x - avg, 2)
+        print "Std. Var. :: " + str(math.sqrt(sum_/sum_remove)), 'ms'
     else:
         print "AVG:: ", 'Zero'
-
+    print "Good put::", avg, 'ms'
+    print "\n"
     print "sum_time_remove_fail: ", sum_time_remove_fail
     print "max_time_remove_fail: ", max_time_remove_fail
     print "min_time_remove_fail: ", min_time_remove_fail
@@ -253,4 +308,6 @@ if __name__ == "__main__":
     else:
         print "AVG:: ", 'Zero'
 
-        # _ = raw_input('Continue to next round?>')
+
+
+    # _ = raw_input('Continue to next round?>')

@@ -8,6 +8,7 @@ AvailabilityAndConsistency = 02
 Wire = 03
 RequestReplyClient = 04
 Cleaning_keys = 05
+RequestReplyServer = 06
 
 debug = True
 
@@ -29,6 +30,9 @@ def print_(string, mode, node_id, cur_thread="_"):
                    + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == RequestReplyClient:
             print Colors.Colors.WARNING + thread + "$RequestReplyClient$[node_id:" + node_id + "] " + \
+                  "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
+        elif mode == RequestReplyServer:
+            print Colors.Colors.WARNING + thread + "$RequestReplyServer$[node_id:" + node_id + "] " + \
                   "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == Cleaning_keys:
             print Colors.Colors.FAIL + thread + "$main$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC

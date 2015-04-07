@@ -4,8 +4,10 @@ import socket
 
 
 class UDPNetwork:
-    send_socket = socket.socket(socket.AF_INET,  # Internet
+    def __init__(self):
+        self.send_socket = socket.socket(socket.AF_INET,  # Internet
                              socket.SOCK_DGRAM)  # UDP
+
 
     def send(self, udp_ip, udp_port, message, RP_mode):
         # sock = socket.socket(socket.AF_INET,  # Internet
@@ -35,6 +37,7 @@ class UDPNetwork:
             # sock.settimeout(timeout)  # 100 ms be default
 
             while True:
+                # print cur_thread, '$', "wait"
                 data, addr = sock.recvfrom(512)  # buffer size is 1024 bytes
                 break
             sock.close()
