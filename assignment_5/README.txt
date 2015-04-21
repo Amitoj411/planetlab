@@ -113,6 +113,10 @@ THe following sets of nodes have been deployed in groups of 3, isolated from the
         Anti-antropy is used to advertise the set of active nodes every three seconds. Once, a node receive an ALIVE msg
         from another, it increase the scale of aliveness by one (range from -1 to 3). -1 means dead and value above zero
         is alive. AliveNess table is maintained to store the aliveness value for each other node in the system (O(N)).
+        Whenever a node receive an ALIVE msg to compare the aliveness status for each node in the msg with it is own.
+        If node x has higher value than the local value, a step increase by one is applied to the local value. A decrmeant
+        thread run in parallel to decrement the aliveness status periodically.
+
         An exception is mode once a node join a system and wants to find its successors and predecessors. In this case it use
         PING msgs up to three neighbors. Then it uses the AliveNess table to continue searching along the ring.
 

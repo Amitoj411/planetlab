@@ -14,11 +14,11 @@ import random
 
 
 
-numberOfMsgs = 1000
+numberOfMsgs = 100
 retrial_times = 0
 sleep_time = .1
-timeout = 2
-number_of_nodes = 3
+timeout = 1
+number_of_nodes = 7
 variant = "same_node"  # Node zero
 # variant = "different_nodes"
 # observer_node = 0
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     # time.sleep(5)
 
-    # _ = raw_input('Ready to get?>')
+    _ = raw_input('Ready to get?>')
     node_id = 2
     sum = 0
     sum_time_get_success = 0
@@ -172,6 +172,8 @@ if __name__ == "__main__":
             print "************************************************************"
         time.sleep(sleep_time)
     sum_get= sum
+
+    _ = raw_input('Ready to get?>')
 
 
     node_id = 0
@@ -234,7 +236,7 @@ if __name__ == "__main__":
     print "sum_time_add_success: ", sum_time_put_success, 'ms'
     print "max_time_add_success: ", max_time_put_success, 'ms'
     print "min_time_add_success: ", min_time_put_success, 'ms'
-    if sum_get != 0:
+    if sum_put != 0:
         avg = sum_time_put_success / sum_put * 1.0
         print "AVG:: " + str(avg), 'ms'
         sum_ = 0

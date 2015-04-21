@@ -45,7 +45,7 @@ class RequestReplyClient:
                                  int(self.local_port),
                                  random.randint(0, 100))
 
-        self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
+        self.udp_obj.send_request(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
         # print "will be waiting for: " + self.unique_request_id
 
 
@@ -54,15 +54,18 @@ class RequestReplyClient:
         timeout = self.timeout
         while resend_counter <= self.retrials + 1:
             try:
-                data, addr = self.udp_obj.reply(timeout)
+                data, addr = self.udp_obj.wait_reply(timeout)
                 received_header = data[0:16]
                 payload = data[16:]
                 # print "payload: " + payload
+                tmp = len(received_header)
                 if self.unique_request_id == received_header:
                     return payload
                 else:
                     # TODO check the bad cases
-                    print "bad 16:" , received_header, "expecting: " , self.unique_request_id
+                    # print "bad 16:" , received_header, "expecting: " , self.unique_request_id
+                    Print.print_("RequestReplyClient$ bad 16: " + received_header + "expecting: " + self.unique_request_id,
+                                 Print.RequestReplyClient, local_node_id, cur_thread)
             except socket.error:
                 if self.retrials != 0:
                     resend_counter += 1
@@ -71,7 +74,7 @@ class RequestReplyClient:
                         Print.print_("RequestReplyClient$ Timeout: " + str(timeout) + \
                               "s. Sending again, trail: " + str(resend_counter-1) + ", MODE: " + self.id,
                                      Print.RequestReplyClient, local_node_id, cur_thread)
-                    self.udp_obj.send(self.udp_ip, self.udp_port, self.unique_request_id + self.message, "client")
+                    self.udp_obj.send_request(self.udp_ip, self.udp_port, self.unique_request_id + self.message)
                 else:
                     break
         return -1

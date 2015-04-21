@@ -21,6 +21,17 @@ REMOVE_HINTED = 0x27
 REPLICATE_PUT = 0x28
 REPLICATE_REMOVE = 0x29
 
+# EXECUTE = 0x30
+# RETURN = 0x31
+EXECUTE = 0x30
+# RPC_SIMULATE = 0x31
+# RPC_REPLY = 0x32
+REPLICATE_EXECUTE = 0x31
+EXECUTE_HINTED = 0x32
+
+
+REPLICATE_GET = 0x33
+
 
 def print_command(x):
     if x == 0x01:
@@ -51,5 +62,20 @@ def print_command(x):
         return "REPLICATE_PUT"
     elif x == 0x29:
         return "REPLICATE_REMOVE"
+    elif x == 0x30:
+        return "EXECUTE"
+    # elif x == 0x31:
+    #     return "RPC_SIMULATE"
+    # elif x == 0x32:
+    #     return "RPC_REPLY"
+    elif x == 0x31:
+        return "REPLICATE_EXECUTE"
+    elif x == 0x32:
+        return "EXECUTE_HINTED"
+
+    elif x == 0x33:
+        return "REPLICATE_GET"
+
+
     else:
         return "UNRECOGNIZED"

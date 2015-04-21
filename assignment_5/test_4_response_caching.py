@@ -57,21 +57,21 @@ if __name__ == "__main__":
 
 
     udp_obj = udpSendRecieve.UDPNetwork()
-    udp_obj.send(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
-    reply = udp_obj.reply(1)
+    udp_obj.send_request(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
+    reply = udp_obj.wait_reply(1)
     print reply
     #
 
     time.sleep(.1)
     udp_obj2 = udpSendRecieve.UDPNetwork()
-    udp_obj2.send(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
-    reply = udp_obj2.reply(1)
+    udp_obj2.send_request(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
+    reply = udp_obj2.wait_reply(1)
     print reply
 
     time.sleep(10) # Most likely it gonna work
     udp_obj2 = udpSendRecieve.UDPNetwork()
-    udp_obj2.send(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
-    reply = udp_obj2.reply(1)
+    udp_obj2.send_request(ip_port.split(':')[0], ip_port.split(':')[1], unique_request_id + msg, "client")
+    reply = udp_obj2.wait_reply(1)
     print reply
 
 

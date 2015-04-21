@@ -10,6 +10,7 @@ import NodeList
 import Mode
 import Print
 
+
 class Wire:
     description = "This is implemented on top of the request/reply protocol you developed for A1 " \
                   "(i.e., using UDP, the process for unique IDs, timeouts, etc). " \
@@ -18,20 +19,23 @@ class Wire:
     hashedKeyModN = -1
     fmtRequest = "<B32s"  # Format of Data to be cont. later in the function
     fmtReply = "<B"
-    mode = ""
+    # mode = ""
     ALIVE_PUSH_DEBUG = False
-    REPLICATE_DEBUG = False
+    REPLICATE_DEBUG = True
     successor = []
 
 
-    def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, successor=[-1, -1]):
+    def __init__(self, numberOfNodes, hashedKeyModN, mode, id_, receiving_port=-1, successor=[-1, -1]):
         self.numberOfNodes = numberOfNodes
         self.hashedKeyModN = hashedKeyModN #Local node only
         self.mode = mode
         self.successor = successor
         self.id = id_  # just to have separate port for alive and push msgs
+
+
         # Server
-        self.RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999, id)  # listen infinitely
+        self.receiving_port = receiving_port
+        self.RequestReplyServer_obj = RequestReplyServer.RequestReplyServer(99999, id_, receiving_port)  # listen infinitely
 
         # Client
         self.RequestReplyClient_obj = None
@@ -39,12 +43,12 @@ class Wire:
 
     def send_request(self, command, key, value_length, value, cur_thread, node_overwrite, timeout=.1, retrials=2):
         fmt = self.fmtRequest
-        if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command ==Command.PUSH or Command.PUT_HINTED or Command.REPLICATE_PUT:
+        if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED or command == Command.REPLICATE_PUT or command == Command.EXECUTE or command == Command.REPLICATE_EXECUTE or command == Command.EXECUTE_HINTED or command ==Command.REPLICATE_GET:
             fmt += "H" + str(value_length) + 's'
             msg = struct.pack(fmt, command, key, value_length, value)
         else:  # other commands
-            fmt += '0s'  # hope to receive value of null with length 1
-            msg = struct.pack(fmt, command, key, value_length, str(value))
+            # fmt += '0s'  # hope to receive value of null with length 1
+            msg = struct.pack(fmt, command, key)
 
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
@@ -65,12 +69,13 @@ class Wire:
             ip_port = NodeList.look_up_node_id(node_overwrite, self.mode)
 
         local_ip_port = NodeList.look_up_node_id(self.hashedKeyModN, self.mode)
+        # print ip_port
         if self.id == "epidemic":
             port = int(ip_port.split(':')[1]) + 1000
             # print "epidemic"
         elif self.id == "replicate":
             port = int(ip_port.split(':')[1]) + 500
-        else:
+        else:  # main
             port = ip_port.split(':')[1]
         self.RequestReplyClient_obj = RequestReplyClient.RequestReplyClient(ip_port.split(':')[0],
                                                                             port,
@@ -83,21 +88,22 @@ class Wire:
         self.RequestReplyClient_obj.send()
 
     def receive_request(self, hashedKeyMod, cur_thread, handler=""):
-        ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
-        if self.id == "epidemic":
-            port = int(ip_port.split(':')[1]) + 1000
-            # print "epidemic"
-        elif self.id == "replicate":
-            port = int(ip_port.split(':')[1]) + 500
-        else:
-            port = ip_port.split(':')[1]
-        header, msg, addr = self.RequestReplyServer_obj.receive(port, handler, cur_thread,
+        # ip_port = NodeList.look_up_node_id(hashedKeyMod, self.mode)
+        # if self.id == "epidemic":
+        #     port = int(ip_port.split(':')[1]) + 1000
+        #     # print "epidemic"
+        # elif self.id == "replicate":
+        #     port = int(ip_port.split(':')[1]) + 500
+        # else:  # main
+        #     port = ip_port.split(':')[1]
+
+        header, msg, addr, sixteen_byte_header = self.RequestReplyServer_obj.receive(cur_thread,
                                                                 hashedKeyMod)
 
         try:
             command, key = struct.unpack(self.fmtRequest, msg[0:33])
             value_length = 0
-            if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED or command == Command.REPLICATE_PUT:
+            if command == Command.PUT or command == Command.JOIN_SUCCESSOR or command == Command.JOIN_PREDECESSOR or command == Command.ALIVE or command == Command.PUSH or command == Command.PUT_HINTED or command == Command.REPLICATE_PUT or command == Command.EXECUTE or command == Command.REPLICATE_EXECUTE or command == Command.EXECUTE_HINTED or command ==Command.REPLICATE_GET:
                 value_length = struct.unpack("H", msg[33:35])
                 value_length = int(value_length[0])
                 # print value_length
@@ -126,9 +132,10 @@ class Wire:
 
         key = key.rstrip('\0')
         value = value[0]
-        return command, key, value_length, value, addr
+        return command, key, value_length, value, addr, sixteen_byte_header
 
-    def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command):
+
+    def send_reply(self, sender_addr, key, response_code, value_length, value, cur_thread, command, sixteen_byte_header, origin_receiver=True):
 
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
@@ -147,12 +154,15 @@ class Wire:
         if value_length != 0:
             fmt += 'H' + str(value_length) + 's'
             msg = struct.pack(fmt, response_code, value_length, value)
+            # print "response_code", response_code
+            # print "msg", msg
         else:
             msg = struct.pack(fmt, response_code)
-        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key, self.hashedKeyModN)
+        self.RequestReplyServer_obj.send(sender_addr[0], sender_addr[1], msg, command, key, self.hashedKeyModN, sixteen_byte_header, origin_receiver)
 
     def receive_reply(self, cur_thread, command):
         request_reply_response = self.RequestReplyClient_obj.receive_reply(command, self.hashedKeyModN, cur_thread)
+        # print "request_reply_response" , request_reply_response
         value = ("",)
         if request_reply_response == -1:
             response_code = Response.RPNOREPLY
@@ -160,6 +170,7 @@ class Wire:
             try:
                 response_code = struct.unpack(self.fmtReply, request_reply_response[0:1])
                 response_code = response_code[0]
+                # print "response_code", response_code
                 if response_code == Response.SUCCESS:
                     if len(request_reply_response) > 1:
                         value_length = struct.unpack('H', request_reply_response[1:3])
@@ -167,8 +178,10 @@ class Wire:
                         if value_length != 0:  # operation is successful and there is a value.
                             value_fmt = str(value_length) + 's'
                             value = struct.unpack(value_fmt, request_reply_response[3:])
+
             except:
                 raise
+
         if (self.REPLICATE_DEBUG and (command != Command.ALIVE and command != Command.PUSH))\
                 or self.ALIVE_PUSH_DEBUG and (command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE)\
                 or (command != Command.ALIVE and command != Command.PUSH and command != Command.REPLICATE_PUT and command != Command.REPLICATE_REMOVE):

@@ -14,8 +14,8 @@ import Response
 
 numberOfMsgs = 200
 retrial_times = 0
-sleep_time = .05
-timeout = 1
+sleep_time = .1
+timeout = 2
 number_of_nodes = 5
 # observer_node = 0
 

@@ -15,8 +15,8 @@ import Response
 numberOfMsgs = 100
 retrial_times = 0
 sleep_time = .05
-timeout = 2
-number_of_nodes = 5
+timeout = 1
+number_of_nodes = 7
 # observer_node = 0
 
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         sum_put[i] = sum
 
         # time.sleep(5)
-
+        # _ = raw_input('Continue to SHUTDOWN?>')
         wireObj.send_request(Command.SHUTDOWN, str(seed), len(value_to_send), value_to_send, threading.currentThread(),
                              next(i), timeout, retrials=retrial_times)  # kill i+1
         response_code, value = wireObj.receive_reply(threading.currentThread(), Command.PUT)
