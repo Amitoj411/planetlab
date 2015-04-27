@@ -32,6 +32,10 @@ EXECUTE_HINTED = 0x32
 
 REPLICATE_GET = 0x33
 
+# New membership protocol
+HEARTBEAT = 0x34
+DISTRIBUTE = 0x35
+
 
 def print_command(x):
     if x == 0x01:
@@ -73,8 +77,15 @@ def print_command(x):
     elif x == 0x32:
         return "EXECUTE_HINTED"
 
+
     elif x == 0x33:
         return "REPLICATE_GET"
+
+    elif x == 0x34:
+        return "HEARTBEAT"
+    elif x == 0x35:
+        return "DISTRIBUTE"
+
 
 
     else:

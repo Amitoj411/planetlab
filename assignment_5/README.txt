@@ -10,63 +10,110 @@ Modes:
     PlanetLab nodes: To run nodes on planetLab. It differs from the Local mode by the way the node ids are obtained
         Syntax: python main.py 3
         The first shell argument is the number of nodes in system
-        The second is the id of the current node number [0 - 2^(n-1)]
+        The second is the id of the current node number [0 - 2^(N-1)]
 
 
 #############################
 ## Sets of Test Nodes (50) ##
 #############################
-THe following set of nodes have been deployed in one group of 50
-    0,plonk.cs.uwaterloo.ca:50000
-    1,planetlab1.csuohio.edu:50000
-    2,kc-sce-plab2.umkc.edu:50000
-    3,pl2.cs.unm.edu:50000
-    4,planetlab2.cs.purdue.edu:50000
-    5,aguila2.lsi.upc.edu:50000
-    6,planetlab2.koganei.itrc.net:50000
-    7,aguila1.lsi.upc.edu:50000
-    8,ricepl-2.cs.rice.edu:50000
-    9,planet1.pnl.nitech.ac.jp:50000
-    10,planetlab1.koganei.itrc.net:50000
-    11,planetlab1.aut.ac.nz:50000
-    12,host2.planetlab.informatik.tu-darmstadt.de:50000
-    13,planetlab2.informatik.uni-erlangen.de:50000
-    14,75-130-96-13.static.oxfr.ma.charter.com:50000
-    15,planetlab-n1.wand.net.nz:50000
-    16,planetlab1.unr.edu:50000
-    17,planetlab2.informatik.uni-kl.de:50000
-    18,planetlab1.informatik.uni-kl.de:50000
-    19,planetlab1.dojima.wide.ad.jp:50000
-    20,planetlab3.cesnet.cz:50000
-    21,planetlab1.acis.ufl.edu:50000
-    22,planetlab2.cqupt.edu.cn:50000
-    23,planetlab-n2.wand.net.nz:50000
-    24,planetlab2.cis.upenn.edu:50000
-    25,planetlab1.netlab.uky.edu:50000
-    26,planetlab1.utt.fr:50000
-    27,pl3.cs.unm.edu:50000
-    28,planetlab1.postel.org:50000
-    29,pli1-pa-1.hpl.hp.com:50000
-    30,planetlab1.cs.uiuc.edu:50000
-    31,pli1-pa-3.hpl.hp.com:50000
-    32,pl2.pku.edu.cn:50000
-    33,planetvs2.informatik.uni-stuttgart.de:50000
-    34,planetlab1.net.in.tum.de:50000
-    35,planetlab3.net.in.tum.de:50000
-    36,planetlab2.netlab.uky.edu:50000
-    37,planetlab-2.scie.uestc.edu.cn:50000
-    38,planetlab1.tmit.bme.hu:50000
-    39,peeramidion.irisa.fr:50000
-    40,planetlab-2.fhi-fokus.de:50000
-    41,node2.planetlab.mathcs.emory.edu:50000
-    42,pl4.cs.unm.edu:50000
-    43,plab4.ple.silweb.pl:50000
-    44,planetlab1.informatik.uni-goettingen.de:50000
-    45,planetlab-1.sjtu.edu.cn:50000
-    46,planetlab1.eecs.umich.edu:50000
-    47,planetlab2.ucsd.edu:50000
-    48,planetlab1.ifi.uio.no:50000
-    49,planetlab1.bgu.ac.il:50000
+    THe following set of nodes have been deployed in one group of 50
+    plonk.cs.uwaterloo.ca:33333
+    planetlab1.csuohio.edu:33333
+    kc-sce-plab2.umkc.edu:33333
+    pl2.cs.unm.edu:33333
+    planetlab2.cs.purdue.edu:33333
+    ple2.ipv6.lip6.fr:33333
+    planetlab2.koganei.itrc.net:33333
+    ple4.ipv6.lip6.fr:33333
+    ple6.ipv6.lip6.fr:33333
+    planet1.pnl.nitech.ac.jp:33333
+    planetlab1.koganei.itrc.net:33333
+    planet-plc-1.mpi-sws.org:33333
+    pl1.cs.montana.edu:33333
+    planetlabtwo.ccs.neu.edu:33333
+    75-130-96-13.static.oxfr.ma.charter.com:33333
+    planetlabone.ccs.neu.edu:33333
+    planetlab1.unr.edu:33333
+    planetlab-5.eecs.cwru.edu:33333
+    planetlab-01.bu.edu:33333
+    planetlab1.dojima.wide.ad.jp:33333
+    planetlab3.cesnet.cz:33333
+    planetlab1.acis.ufl.edu:33333
+    planetlab4.williams.edu:33333
+    planetlab3.ucsd.edu:33333
+    planetlab2.cis.upenn.edu:33333
+    planetlab1.netlab.uky.edu:33333
+    planetlab2.cs.colorado.edu:33333
+    pl3.cs.unm.edu:33333
+    planetlab1.cs.colorado.edu:33333
+    pli1-pa-1.hpl.hp.com:33333
+    plab4.eece.ksu.edu:33333
+    pli1-pa-3.hpl.hp.com:33333
+    planetlab1.unl.edu:33333
+    pli1-pa-6.hpl.hp.com:33333
+    planetlab1.net.in.tum.de:33333
+    planetlab3.net.in.tum.de:33333
+    planetlab2.netlab.uky.edu:33333
+    planetlab1.otemachi.wide.ad.jp:33333
+    planetlab1.tmit.bme.hu:33333
+    peeramidion.irisa.fr:33333
+    planetlab-2.fhi-fokus.de:33333
+    node2.planetlab.mathcs.emory.edu:33333
+    pl4.cs.unm.edu:33333
+    plab4.ple.silweb.pl:33333
+    sybaris.ipv6.lip6.fr:33333
+    planetlab1.arizona-gigapop.net:33333
+    planetlab1.eecs.umich.edu:33333
+    planetlab2.ucsd.edu:33333
+    planetlab1.ifi.uio.no:33333
+    planetlab-1.fhi-fokus.de:33333
+    flow.colgate.edu:33333
+    host1.planetlab.informatik.tu-darmstadt.de:33333
+    anateus.ipv6.lip6.fr:33333
+    host2.planetlab.informatik.tu-darmstadt.de:33333
+    inriarennes2.irisa.fr:33333
+    iraplab1.iralab.uni-karlsruhe.de:33333
+    pl2.cs.montana.edu:33333
+    node2.planetlab.uni-luebeck.de:33333
+    pl1.sos.info.hiroshima-cu.ac.jp:33333
+    planetlab02.cs.washington.edu:33333
+    planck227ple.test.ibbt.be:33333
+    planetlab1.aut.ac.nz:33333
+    planetlab1.cs.purdue.edu:33333
+    planetlab1.informatik.uni-goettingen.de:33333
+    planetlab-1.ssvl.kth.se:33333
+    planet-lab2.cs.ucr.edu:33333
+    planetlab2.ci.pwr.wroc.pl:33333
+    planetlab2.ecs.vuw.ac.nz:33333
+    planetlab2.informatik.uni-kl.de:33333
+    planetlab3.rutgers.edu:33333
+    planetlab5.csee.usf.edu:33333
+    planetlab4.hiit.fi:33333
+    planetlab-n1.wand.net.nz:33333
+    planetlab-n2.wand.net.nz:33333
+    planetvs2.informatik.uni-stuttgart.de:33333
+    ple2.dmcs.p.lodz.pl:33333
+    plnode-03.gpolab.bbn.com:33333
+    plewifi.ipv6.lip6.fr:33333
+    saturn.planetlab.carleton.ca:33333
+    vn4.cse.wustl.edu:33333
+    pl2.eng.monash.edu.au:33333
+    planetlab3.mini.pw.edu.pl:33333
+    planetlab1.cqupt.edu.cn:33333
+    planetlab2.cs.uml.edu:33333
+    planetlab-2.cse.ohio-state.edu:33333
+    planetlab3.wail.wisc.edu:33333
+    planetlab2.utdallas.edu:33333
+    pl2.6test.edu.cn:33333
+    salt.planetlab.cs.umd.edu:33333
+    planetlab1.utdallas.edu:33333
+    planetlab1.csee.usf.edu:33333
+    planetlab-2.sjtu.edu.cn:33333
+    planetlab1.cs.du.edu:33333
+    planetlab-01.vt.nodes.planet-lab.org:33333
+    planetlab1.mini.pw.edu.pl:33333
+    pl1.6test.edu.cn:33333
+
 
 
 ##############################
@@ -77,30 +124,6 @@ THe following sets of nodes have been deployed in groups of 3, isolated from the
     cs-planetlab3.cs.surrey.sfu.ca:50000
     planetlab2.cs.ubc.ca:50000
 
-    planetlab2.cs.uml.edu:50000
-    planetlab-2.cse.ohio-state.edu:50000
-    planetlab3.wail.wisc.edu:50000
-
-    lefthand.eecs.harvard.edu:50000
-    planetlab2.utdallas.edu:50000
-    pl2.6test.edu.cn:50000
-
-    salt.planetlab.cs.umd.edu:50000
-    planetlab1.utdallas.edu:50000
-    planetlab1.csee.usf.edu:50000
-
-    planetlab-2.sjtu.edu.cn:50000
-    planetlab1.citadel.edu:50000
-    planetlab1.cs.du.edu:50000
-
-    planetlab-01.vt.nodes.planet-lab.org:50000
-    planetlab1.mini.pw.edu.pl:50000
-    pl1.6test.edu.cn:50000
-
-    pl2.eng.monash.edu.au:50000
-    planetlab3.mini.pw.edu.pl:50000
-    planetlab1.cqupt.edu.cn:50000
-
 
 #######################
 ## Design
@@ -109,18 +132,31 @@ THe following sets of nodes have been deployed in groups of 3, isolated from the
         The code runs consistent hashing to load balance the keys across the network.
 
     Membership protocol:
-        is implemented based on Epidemic algorithms; gossip is used as bootstrap to advertise new node joining the system.
-        Anti-antropy is used to advertise the set of active nodes every three seconds. Once, a node receive an ALIVE msg
-        from another, it increase the scale of aliveness by one (range from -1 to 3). -1 means dead and value above zero
-        is alive. AliveNess table is maintained to store the aliveness value for each other node in the system (O(N)).
-        Whenever a node receive an ALIVE msg to compare the aliveness status for each node in the msg with it is own.
-        If node x has higher value than the local value, a step increase by one is applied to the local value. A decrmeant
-        thread run in parallel to decrement the aliveness status periodically.
+        We have implement Gossip-Style Failure Detection^1 membership protocol. Each node maintain route state in a routing table where it stores:
+        node address (ID), HearBeat counter, time
+        The Protocol works as follows:
+            1-Regulary send HEARBEAT msgs to randomly selected nodes and update.
+                If a node is alive increase the HeartBeat counter for that node by 1 and set Time field to time.now()
+            2- Regulary (Tgossip):
+                Sender:
+                    DITRIBUTE the route table with other nodes using Gossip-style protocol.
+                Receiver:
+                    for all nodes info in DISTRIBUTE msg
+                        if HeartBeat counter > the current HearBeat counter
+                            set current HeartBeat counter to the maximum
+                            set time to time.now()
 
-        An exception is mode once a node join a system and wants to find its successors and predecessors. In this case it use
-        PING msgs up to three neighbors. Then it uses the AliveNess table to continue searching along the ring.
+        -A node will considered down if time.now() - node.time > Tfail.
+        -If a node fails, no other nodes will update the HeartBeat counter for it and eventually  time.now() - node.time will be > Tfail.
+        -After Tcleanup seconds, it will delete the member from the routing table
+        -Why two different timeouts?
+            To prevent oscillation: After Tfail, no new updates will be accepted for a node until Tcleanup. This will ensure that the state
+            of that node will node be alive after a death just because another node still think it is alive
+        - Tfail = 5 sec
+        - Tcleanup = 10 sec
+        - Tgossip = 2 sec
 
-
+        Reference: https://courses.engr.illinois.edu/cs525/sp2011/L_member.sp11.ppt
     Directions on the ring:
         - Counter clock wise to find a successor
         - Clock wise to find a predecessor
@@ -151,15 +187,18 @@ THe following sets of nodes have been deployed in groups of 3, isolated from the
         - Non-blocking (PUT and REMOVE): Should always return SUCCESS
         - Blocking (GET): Might return SUCCESS or NONEXISTANCE key
 
+    Optimizations:
+        Quorum: Parrallel GET retrieval from all successors to improve Availability and enhance GET reliability. Also to decrease the latency.
+        Client    SERVER 0         SERVER1       SERVER 2
+           |         |                |            |
+           X-------->|                |            |         Request: GET
+           |<--------X                |            |         Response: Success
+           |         X--------------->|----------->|         Request: Replicate GET
+           |<-------------------------X            |         Response: Success
+           |<--------------------------------------X         ResponsE: Success
 
-#######################
-## Testing
-#######################
-Four test files are provided with the same description provided in the course web page.
-    test_5_response_time
-    test_5_response_time_and_throughput
-    test_5_single_node_failures
-    test_5_catastrophic_failure
+
+
 
 
 #######################
@@ -195,6 +234,9 @@ GET_HINTED = 0x26
 REMOVE_HINTED = 0x27
 REPLICATE_PUT = 0x28
 REPLICATE_REMOVE = 0x29
+REPLICATE_GET = 0x33
+HEARTBEAT = 0x34
+DISTRIBUTE = 0x35
 
 #######################
 ## Requirements       #

@@ -3,7 +3,6 @@ __author__ = 'Owner'
 # sys.path.append("../")
 import wire
 import Mode
-import ring
 import Command
 import time
 from Response import print_response
@@ -14,11 +13,11 @@ import random
 
 
 
-numberOfMsgs = 100
+numberOfMsgs = 20
 retrial_times = 0
 sleep_time = .1
 timeout = 1
-number_of_nodes = 7
+number_of_nodes = 50
 variant = "same_node"  # Node zero
 # variant = "different_nodes"
 # observer_node = 0
@@ -35,7 +34,6 @@ def next(cursor):
         return cursor + 1
 
 if __name__ == "__main__":
-    kvTable = ring.Ring()
     wireObj = wire.Wire(3, 0, Mode.local, "main")
 
     value_to_send = "Any......."

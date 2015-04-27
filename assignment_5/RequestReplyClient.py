@@ -58,7 +58,7 @@ class RequestReplyClient:
                 received_header = data[0:16]
                 payload = data[16:]
                 # print "payload: " + payload
-                tmp = len(received_header)
+                # tmp = len(received_header)
                 if self.unique_request_id == received_header:
                     return payload
                 else:

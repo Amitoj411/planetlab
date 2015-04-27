@@ -58,12 +58,12 @@ class RequestReplyServer:
     # id = ""
 
 
-    def __init__(self, timeout, id_, receiving_port):
+    def __init__(self, timeout, id_, receiving_port, middle_sender_addr=None):
         # self.udp_ip = udp_ip
         # self.udp_port = udp_port
         # self.message = message
         # self.local_port = local_port
-        self.udp_obj = udpSendRecieve.UDPNetwork(receiving_port)
+        self.udp_obj = udpSendRecieve.UDPNetwork(receiving_port, middle_sender_addr)
         self.timeout = timeout
         self.id = id_
         self.cache = HashTable.HashTable("ServerCache")
@@ -71,7 +71,7 @@ class RequestReplyServer:
         # self.stack = Stack()
         self.list = []
 
-    def send(self, udp_ip, udp_port, message, command, key, local_node_id, sixteen_byte_header, origin_receiver=True):
+    def send_reply(self, udp_ip, udp_port, message, command, key, local_node_id, sixteen_byte_header, origin_receiver=True):
         # Add to the server cache
         msgObj = Message(udp_ip, udp_port, message, command, key)  # Command and key just for logging
         # self.cache.put(str(self.unique_request_id), msgObj)
@@ -85,6 +85,7 @@ class RequestReplyServer:
         # print tmp, sixteen_byte_header
         if origin_receiver:
             try:
+                # print self.list
                 self.list.remove(sixteen_byte_header)
             except:
                 print sixteen_byte_header

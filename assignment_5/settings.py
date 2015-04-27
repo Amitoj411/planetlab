@@ -3,14 +3,20 @@ __author__ = 'Owner'
 import HashTable
 import wire
 import NodeList
+import VectorStamp
+import time
 
 def init(N_, hashedKeyModN_, mode_):
+
+    global N
+    N = N_
 
     global aliveNessTable
     aliveNessTable = HashTable.HashTable("AliveNess")
 
-    global N
-    N = N_
+    # for index in range(0, int(N)):
+    #     aliveNessTable.put(str(index), 0)
+
 
     global kvTable
     kvTable = HashTable.HashTable("KV", int(N))
@@ -42,5 +48,32 @@ def init(N_, hashedKeyModN_, mode_):
     game_dag = HashTable.HashTable("game_dag", int(N))
     game_dag.put("game1", "1m:2m,2m:3c,3c:5c,5c:4c")
     # game_dag.put("game1", "1m:2m,2m:3c,3c:5c")
-
     # game_dag.put("game1", "1m:2m,2m:5c")
+
+    # str keys
+    # global vector_stamp_table
+    # vector_stamp_table = HashTable.HashTable("vector_stamp_table", int(N))
+    # global vector_stamp_table
+    # vector_stamp_table = [0] * int(N)
+
+    # initiate to zeros
+    # VectorStamp.init()
+
+    # global contamination_list
+    # contamination_list = [time.time()] * int(N)
+
+
+# def get_vector_stamp_string():
+#     return ','.join([str(i) for i in vector_stamp_table])
+    # for index in range(0, int(N)):
+    #     contamination_list[index] = time.time()
+
+    # HEARTBEATs
+    global TFails
+    global Tgossip
+    global TlocalCheck
+    global TClean
+    TFails = 5
+    Tgossip = 3
+    TlocalCheck = 1.5
+    TClean = TFails * 2

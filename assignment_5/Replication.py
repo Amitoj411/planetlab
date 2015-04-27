@@ -71,11 +71,12 @@ def clean_up_replicated_keys():
         for key, value in settings.kvTable.hashTable.items():
             node_id = hash(key) % int(settings.N)
             if node_id != int(settings.hashedKeyModN):
-                s = AvailabilityAndConsistency.get_direct_successor(key)
+                # s = AvailabilityAndConsistency.get_direct_successor(key)
+                s = AvailabilityAndConsistency.get_healthy_successor(key)
 
                 if int(settings.hashedKeyModN) not in s \
-                    and settings.aliveNessTable.get(str(s[0])) >= 0\
-                    and settings.aliveNessTable.get(str(s[1])) >= 0:
+                    and settings.aliveNessTable.isAlive(str(s[0]))\
+                    and settings.aliveNessTable.isAlive(str(s[1])):
                     # and settings.aliveNessTable.get(str(s[2])) >= 0:
                     Print.print_("clean_up_replicated_keys" + ",Key: " + key + ",Node: " + str(node_id) + ", get_direct_successor: " + str(s), Print.Cleaning_keys, settings.hashedKeyModN, threading.currentThread())
                     settings.kvTable.remove(key)

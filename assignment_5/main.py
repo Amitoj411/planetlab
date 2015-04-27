@@ -35,7 +35,7 @@ def off_load_get_thread(key, sender_addr, sixteen_byte_header):
 
 
 def off_load_get(key):
-    if settings.aliveNessTable.get(str(hash(key) % int(N))) >= 0:
+    if settings.aliveNessTable.isAlive(str(hash(key) % int(N))):
         successor_ = hash(key) % int(N)
     else:
         successor_ = AvailabilityAndConsistency.search(key, "table")
@@ -52,12 +52,12 @@ def off_load_get(key):
                 # print "recursive find" + ", successor_:" + str(successor_) + ", settings.aliveNessTable.get(successor_)" + \
                 #     str(settings.aliveNessTable.get(successor_))
                 # settings.aliveNessTable.remove(str(successor_))  # May be penalize in the negative to solve teh later msgs on the way
-            settings.aliveNessTable.put(str(successor_), -6)
+            settings.aliveNessTable.put(str(successor_), 0)
             response_code, value = off_load_get(key)
             # else:
             #     response_code, value = off_load_get(key)
         else:
-            Print.print_("Value:" + str(value),Print.Main, settings.hashedKeyModN)
+            Print.print_("Value:" + str(value), Print.Main, settings.hashedKeyModN)
 
     else:  # the local node
         response_code, value = try_to_get(key)
@@ -75,7 +75,7 @@ def off_load_put_thread(key, value, sender_addr, sixteen_byte_header):
 
 
 def off_load_put(key, value):
-    if settings.aliveNessTable.get(str(hash(key) % int(N))) >= 0:
+    if settings.aliveNessTable.isAlive(str(hash(key) % int(N))):
         successor_ = hash(key) % int(N)
     else:
         successor_ = AvailabilityAndConsistency.search(key, "table")
@@ -95,7 +95,7 @@ def off_load_put(key, value):
             # if response_code_ != Response.SUCCESS:  # Declare dead
             print "recursive find"
                 # settings.aliveNessTable.remove(successor_)
-            settings.aliveNessTable.put(str(successor_), -6)
+            settings.aliveNessTable.put(str(successor_), 0)
             response_code = off_load_put(key, value)
             # else:
             #     response_code = off_load_put(key, value)
@@ -116,7 +116,7 @@ def off_load_remove_thread(key, sender_addr, sixteen_byte_header):
 
 
 def off_load_remove(key):
-    if settings.aliveNessTable.get(str(hash(key) % int(N))) >= 0:
+    if settings.aliveNessTable.isAlive(str(hash(key) % int(N))):
         successor_ = hash(key) % int(N)
     else:
         successor_ = AvailabilityAndConsistency.search(key, "table")
@@ -132,7 +132,7 @@ def off_load_remove(key):
                 # response_code_, value_ = settings.wireObj.receive_reply(threading.currentThread(), Command.PING)
                 # if response_code_ != Response.SUCCESS:  # Declare dead
                     # settings.aliveNessTable.remove(successor_)
-                settings.aliveNessTable.put(str(successor_), -6)
+                settings.aliveNessTable.put(str(successor_), 0)
                 response_code = off_load_remove(key)
                 # else:
                 #     response_code = off_load_remove(key)
@@ -144,38 +144,24 @@ def off_load_remove(key):
     return response_code
 
 
-def off_load_process(key, sender_addr, sixteen_byte_header):  # TODO make it as GET, PUT, REMOVE
-    if settings.aliveNessTable.get(str(hash(key) % int(N))) >= 0:
+def off_load_process(key, sender_addr, middle_sender_addr, sixteen_byte_header):  # TODO make it as GET, PUT, REMOVE
+    if settings.aliveNessTable.isAlive(str(hash(key) % int(N))):
         successor_ = hash(key) % int(N)
     else:
         successor_ = AvailabilityAndConsistency.search(key, "table")
     # print sender_addr
     if successor_ != int(settings.hashedKeyModN):  # not the local node
-        value = struct.pack('20s16s', str(sender_addr), sixteen_byte_header)
+        value = struct.pack('30s30s16s', str(sender_addr), str(middle_sender_addr), sixteen_byte_header)
         t1=len(sixteen_byte_header)
         settings.wireObj.send_request(Command.EXECUTE_HINTED, key, len(value), value, threading.currentThread(), successor_)
         response_code, response_value = settings.wireObj.receive_reply(threading.currentThread(), Command.EXECUTE_HINTED)
     else:  # local
-        simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, sender_addr, sixteen_byte_header, Command.EXECUTE_HINTED, True))
+        simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, sender_addr, middle_sender_addr, sixteen_byte_header, Command.EXECUTE_HINTED, True))
         simulate_thread.start()
 
-        replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr, sixteen_byte_header))
+        replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr, middle_sender_addr, sixteen_byte_header))
         replicate_process_thread.start()
 
-        # # Simulate Process replication
-        # s1 = s2 = -1
-        # s1 = AvailabilityAndConsistency.successor(successor_, 'table')
-        # if s1 != hashedKeyModN:
-        #     s2 = AvailabilityAndConsistency.successor(s1, 'table')
-        # # print "s1, s2", s1, s2
-        #
-        # if s1 != -1 and s1 != int(hashedKeyModN):
-        #     simulate_forward_rpc_thread1 = threading.Thread(target=ProcessManagement.replicate_process, args=(s1, key, str(sender_addr), sixteen_byte_header))
-        #     simulate_forward_rpc_thread1.start()
-        #
-        # if s2 != -1 and s2 != int(hashedKeyModN):
-        #     simulate_forward_rpc_thread2 = threading.Thread(target=ProcessManagement.replicate_process, args=(s2, key, str(sender_addr), sixteen_byte_header))
-        #     simulate_forward_rpc_thread2.start()
 
 
 class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
@@ -213,7 +199,7 @@ def replicate_get(key, sender_addr, sixteen_byte_header):
 
 def replicate_get_process(node_id, key, sender_addr, sixteen_byte_header):
     wireObj = wire.Wire(settings.N, settings.hashedKeyModN, settings.mode, "main")
-    value = struct.pack('20s16p', sender_addr, sixteen_byte_header)
+    value = struct.pack('30s16p', sender_addr, sixteen_byte_header)
     wireObj.send_request(Command.REPLICATE_GET, key, len(value), value, threading.currentThread(), node_id, .2, 0)
     response_code, response_value = wireObj.receive_reply(threading.currentThread(), Command.REPLICATE_EXECUTE)
 
@@ -246,22 +232,24 @@ def receive_request(handler=""):
             # settings.wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET)
 
             # REPLICATE GET Simulation
-            replicate_process_thread = threading.Thread(target=replicate_get, args=(key, sender_addr, sixteen_byte_header))
-            replicate_process_thread.start()
+            # replicate_process_thread = threading.Thread(target=replicate_get, args=(key, sender_addr, sixteen_byte_header))
+            # replicate_process_thread.start()
 
         elif command == Command.GET_HINTED:
             response, value_to_send = try_to_get(key)
             settings.wireObj.send_reply(sender_addr, key, response, len(value_to_send), value_to_send, cur_thread, Command.GET, sixteen_byte_header)
 
             # REPLICATE GET Simulation
-            replicate_process_thread = threading.Thread(target=replicate_get, args=(key, sender_addr, sixteen_byte_header))
-            replicate_process_thread.start()
+            # replicate_process_thread = threading.Thread(target=replicate_get, args=(key, sender_addr, sixteen_byte_header))
+            # replicate_process_thread.start()
 
         elif command == Command.REPLICATE_GET:
             settings.wireObj.send_reply(sender_addr, "Anykey", Response.SUCCESS, len(""), "", cur_thread, Command.REPLICATE_GET, sixteen_byte_header)
-            sender_addr_, sixteen_byte_header_ = struct.unpack('20s16s', value)
+            sender_addr_, sixteen_byte_header_ = struct.unpack('30s16p', value)
             response, value_to_send = try_to_get(key)
             # settings.wireObj_replicate.send_reply(sender_addr, key, response, 0, "", cur_thread, Command.REPLICATE_GET, sixteen_byte_header)
+            print sender_addr_
+            print eval(sender_addr_)
             settings.wireObj.send_reply(eval(sender_addr_)
                                         , key, response, len(value_to_send), value_to_send, threading.currentThread(), Command.REPLICATE_GET, sixteen_byte_header_, False)
 
@@ -297,7 +285,7 @@ def receive_request(handler=""):
                 # if distance == 1 and (hash(k) % int(N) > int(settings.hashedKeyModN) or hash(k) % int(N) == join_id) or \
                 #         (distance > 1 and hash(k) % int(N) == join_id) or \
                 #                 distance_node_to_key(join_id, k) <= distance_node_to_key(int(settings.hashedKeyModN), k):
-                is_join_have_local_as_successor = AvailabilityAndConsistency.if_join_have_local_as_successor(join_id)
+                # is_join_have_local_as_successor = AvailabilityAndConsistency.if_join_have_local_as_successor(join_id)
                 if hash(k) % int(N) == join_id:  # and is_join_have_local_as_successor:
                     key_value = settings.kvTable.hashTable[k]
                     settings.wireObj_replicate.send_request(Command.REPLICATE_PUT, k, len(key_value), key_value,
@@ -316,7 +304,7 @@ def receive_request(handler=""):
             settings.wireObj.send_reply(sender_addr, "", Response.SUCCESS, 0, "", cur_thread, Command.JOIN_SUCCESSOR, sixteen_byte_header)
 
             for k in settings.kvTable.hashTable:
-                is_local_have_join_as_successor = AvailabilityAndConsistency.if_local_have_join_as_successor(join_id)
+                # is_local_have_join_as_successor = AvailabilityAndConsistency.if_local_have_join_as_successor(join_id)
                 if hash(k) % int(N) == int(settings.hashedKeyModN):  # and is_local_have_join_as_successor:
                     key_value = settings.kvTable.hashTable[k]
                     settings.wireObj_replicate.send_request(Command.REPLICATE_PUT, k, len(key_value), key_value,
@@ -324,11 +312,6 @@ def receive_request(handler=""):
                     response_code, value = settings.wireObj_replicate.receive_reply(threading.currentThread(), Command.PUT)
 
         elif command == Command.EXECUTE:
-            #  settings.wireObj.send_reply(sender_addr, "Anykey", Response.SUCCESS, len(""), "", cur_thread, Command.REGISTER, sixteen_byte_header)
-
-            # client_id = key
-            # game_id = value
-
             game_id = key[:5]
             # component_name = value
             component_name = key[5:]
@@ -338,33 +321,27 @@ def receive_request(handler=""):
             forward_node = hash(game_id + component_name) % int(N)
             print "forward_node for ", game_id + component_name, ":", forward_node
 
-            # Blocking response
+
+            ip_port = NodeList.look_up_node_id(settings.hashedKeyModN, mode)
+            middle_sender_addr = ip_port.split(':')[0]
+            # print "in EXECUTE", middle_sender_addr
             if forward_node == int(settings.hashedKeyModN):
                 # ip_port_ = NodeList.look_up_node_id(settings.hashedKeyModN, mode)
 
                 # EXECUTE Simulation
-                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, sender_addr, sixteen_byte_header, command, True))
+                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, sender_addr, middle_sender_addr, sixteen_byte_header, command, True))
                 simulate_thread.start()
 
                 # REPLICATE EXECUTE Simulation
-                replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr, sixteen_byte_header))
+                replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr, middle_sender_addr, sixteen_byte_header))
                 replicate_process_thread.start()
-
-                # SEND HINTED-EXECUTE for the next component
-                # dagObj = partitioning.parse_game_dag(settings.game_dag.get(game_id))
-                # for component in dagObj:
-                #     if component.name == component_name:
-                #         offload_process_thread = threading.Thread(target=off_load_process, args=(key, sender_addr, sixteen_byte_header))
-                #         offload_process_thread.start()
 
 
 
             else:  # other node
-                ip_port_ = NodeList.look_up_node_id(forward_node, mode)
                 # Send hinted-off
-                # settings.wireObj.send_request(Command.PROCESS_HINTED, "Anykey", len(""), "", threading.currentThread(), forward_node)
-                # response_code, response_value = settings.wireObj.receive_reply(threading.currentThread(), Command.PROCESS_HINTED)
-                offload_process_thread = threading.Thread(target=off_load_process, args=(key, sender_addr, sixteen_byte_header))
+                offload_process_thread = threading.Thread(target=off_load_process, args=(key, sender_addr, middle_sender_addr
+                                                                                         , sixteen_byte_header))
                 offload_process_thread.start()
 
 
@@ -374,30 +351,29 @@ def receive_request(handler=""):
         elif command == Command.REPLICATE_EXECUTE:
                 settings.wireObj.send_reply(sender_addr, "Anykey", Response.SUCCESS, len(""), "", cur_thread, Command.REPLICATE_EXECUTE, sixteen_byte_header)
 
-                sender_addr_, sixteen_byte_header_ = struct.unpack('20s16s', value)
-                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, eval(sender_addr_), sixteen_byte_header_, command, False))  # False == not the original receiver
+                sender_addr_, middle_sender_addr, sixteen_byte_header_ = struct.unpack('30s30s16s', value)
+                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, eval(sender_addr_.strip(' \t\r\n\0')), middle_sender_addr.strip(' \t\r\n\0'),  sixteen_byte_header_, command, False))  # False == not the original receiver
                 simulate_thread.start()
+
 
         elif command == Command.EXECUTE_HINTED:
                 settings.wireObj.send_reply(sender_addr, "Anykey", Response.SUCCESS, len(""), "", cur_thread, Command.EXECUTE_HINTED, sixteen_byte_header)
 
-                sender_addr_, sixteen_byte_header_ = struct.unpack('20s16s', value)
+                sender_addr_, middle_sender_addr, sixteen_byte_header_ = struct.unpack('30s30s16s', value)
                 # t1 = len(sixteen_byte_header_)
+                # print t1
                 # print "sender_addr_, sixteen_byte_header_", sender_addr_, sixteen_byte_header_
-                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, eval(sender_addr_), sixteen_byte_header_, command, False))
+                print middle_sender_addr
+                # eval(sender_addr_.strip(' \t\r\n\0'))
+                simulate_thread = threading.Thread(target=ProcessManagement.add, args=(key, eval(sender_addr_.strip(' \t\r\n\0')),
+                                                                                        middle_sender_addr.strip(' \t\r\n\0'),
+                                                                                        sixteen_byte_header_,
+                                                                                        command, False))
                 simulate_thread.start()
 
-                replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr_, sixteen_byte_header_))
+                # REPLICATE EXECUTE Simulation
+                replicate_process_thread = threading.Thread(target=ProcessManagement.replicate, args=(key, sender_addr_, middle_sender_addr.strip(' \t\r\n\0'), sixteen_byte_header_))
                 replicate_process_thread.start()
-
-                # SEND HINTED-EXECUTE for the next component
-                # game_id = key[:5]
-                # component_name = key[5:]
-                # dagObj = partitioning.parse_game_dag(settings.game_dag.get(game_id))
-                # for component in dagObj:
-                #     if component.name == component_name:
-                #         offload_process_thread = threading.Thread(target=off_load_process, args=(key, sender_addr, sixteen_byte_header))
-                #         offload_process_thread.start()
 
 
         else:
@@ -629,26 +605,33 @@ if __name__ == "__main__":
 
     # nodeCommunicationObj.join(int(settings.hashedKeyModN), settings.aliveNessTable)  # call joining procedure
     # nodeCommunicationObj.join_successor()  # call joining procedure
-    AvailabilityAndConsistency.join_successor()
-    time.sleep(1.5)
-    AvailabilityAndConsistency.join_predecessor()  # call joining procedure
 
-    time.sleep(1)
-
-    # #  Aliveness thread anti-antropy will run periodically
-    iAmAliveAntriAntropyThread = threading.Thread(target=MembershipProtocol.i_am_alive_antri_antropy)
-    iAmAliveAntriAntropyThread.start()
-
-    i_am_alive_small_network = threading.Thread(target=MembershipProtocol.i_am_alive_small_network)
-    i_am_alive_small_network.start()
+    #  Aliveness thread anti-antropy will run periodically
+    # iAmAliveAntriAntropyThread = threading.Thread(target=MembershipProtocol.i_am_alive_antri_antropy)
+    # iAmAliveAntriAntropyThread.start()
+    #
+    # i_am_alive_small_network = threading.Thread(target=MembershipProtocol.i_am_alive_small_network)
+    # i_am_alive_small_network.start()
 
     # #  Aliveness-cleaning thread
-    aliveNessCleaning = threading.Thread(target=MembershipProtocol.decrement_soft_state)
-    aliveNessCleaning.start()
+    # aliveNessCleaning = threading.Thread(target=MembershipProtocol.decrement_soft_state)
+    # aliveNessCleaning.start()
 
     # Aliveness thread -Gossip ONLY once on startup
-    iAmAliveGossipThread = threading.Thread(target=MembershipProtocol.epidemic_gossip)
-    iAmAliveGossipThread.start()
+    # iAmAliveGossipThread = threading.Thread(target=MembershipProtocol.epidemic_gossip)
+    # iAmAliveGossipThread.start()
+
+    #
+    check_random_nodesThread = threading.Thread(target=MembershipProtocol.check_random_nodes)
+    check_random_nodesThread.start()
+
+    epidemically_send_local_route_stateThread = threading.Thread(target=MembershipProtocol.epidemically_send_local_route)
+    epidemically_send_local_route_stateThread.start()
+
+    # clean_route_stateThread = threading.Thread(target=MembershipProtocol.clean_route_state)
+    # clean_route_stateThread.start()
+
+    time.sleep(1)
 
     # User input thread
     if mode != Mode.planetLab:
@@ -656,8 +639,15 @@ if __name__ == "__main__":
         userInputThread.start()
 
     ProcessManagement.init()
-    rpc_serverThread = threading.Thread(target=ProcessManagement.rpc_server)
-    rpc_serverThread.start()
+    # rpc_serverThread = threading.Thread(target=ProcessManagement.rpc_server)
+    # rpc_serverThread.start()
+
+
+    time.sleep(2)
+    AvailabilityAndConsistency.join_successor()
+    time.sleep(1.5)
+    AvailabilityAndConsistency.join_predecessor()  # call joining procedure
+
 
     clean_up_replicated_keys_thread = threading.Thread(target=Replication.clean_up_replicated_keys)
     clean_up_replicated_keys_thread.start()
