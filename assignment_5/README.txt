@@ -14,9 +14,9 @@ Modes:
 
 
 #############################
-## Sets of Test Nodes (50) ##
+## Sets of Test Nodes (96) ##
 #############################
-    THe following set of nodes have been deployed in one group of 50
+    THe following set of nodes have been deployed in one group of 96
     plonk.cs.uwaterloo.ca:33333
     planetlab1.csuohio.edu:33333
     kc-sce-plab2.umkc.edu:33333
@@ -117,7 +117,7 @@ Modes:
 
 
 ##############################
-## Sets of Test Nodes 6 x 3 ##
+## Sets of Test Nodes 1 x 3 ##
 ##############################
 THe following sets of nodes have been deployed in groups of 3, isolated from the other sets.
     planetlab1.cs.ubc.ca:50000
