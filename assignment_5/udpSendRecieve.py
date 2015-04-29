@@ -13,7 +13,12 @@ class UDPNetwork:
             # print middle_sender_addr
             self.server_socket.bind((middle_sender_addr, 0))  # only IP
         elif receiving_port != -1:
-            self.server_socket.bind(('', int(receiving_port)))
+            try:
+                self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.server_socket.bind(('', int(receiving_port)))
+            except:
+                print receiving_port
+                raise
 
     # Just for the client
     def send_request(self, udp_ip, udp_port, message):
@@ -27,7 +32,7 @@ class UDPNetwork:
     def wait_reply(self, timeout):
         self.client_socket.settimeout(timeout)  # 100 ms be default
         while True:
-            reply, addr = self.client_socket.recvfrom(1024)
+            reply, addr = self.client_socket.recvfrom(2048)
             # print "BINGOOOO"
             break
         # self.server_socket.close()
@@ -44,7 +49,7 @@ class UDPNetwork:
     def receive_request(self):
         while True:
             # print cur_thread, '$', "wait"
-            data, addr = self.server_socket.recvfrom(1024)  # buffer size is 1024 bytes
+            data, addr = self.server_socket.recvfrom(2048)  # buffer size is 1024 bytes
             break
         # self.server_socket.close()
         return data, addr

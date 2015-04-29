@@ -9,7 +9,7 @@ Wire = 03
 RequestReplyClient = 04
 Cleaning_keys = 05
 RequestReplyServer = 06
-
+HEARTBEAT = 07
 debug = True
 
 
@@ -36,3 +36,5 @@ def print_(string, mode, node_id, cur_thread="_"):
                   "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
         elif mode == Cleaning_keys:
             print Colors.Colors.FAIL + thread + "$main$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC
+        elif mode == HEARTBEAT:
+            print Colors.Colors.BOLD + thread + "$main$[node_id:" + node_id + "] " + "[" + str(time.time()) + "]" + string + Colors.Colors.ENDC

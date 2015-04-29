@@ -39,16 +39,22 @@ class HashTable:
             print"     Empty " + self.id
         else:
             count = 1
+            alive = 0
             for key in sorted(self.hashTable):
                 if self.id == "ServerCache":
                     print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + self.hashTable[key].msg
                 elif self.id == "KV":
                     print "     " + str(count) + "- " + self.id + "[" + str(key) + "/" + str(hash(key) % self.N) + "]:" + str(self.hashTable[key])
                 elif self.id == "AliveNess":
-                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(self.isAlivePrint(key))
+                    tmp = self.isAlivePrint(key)
+                    print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(tmp)
+                    if tmp[0] == "1":
+                        alive += 1
                 else:
                     print "     " + str(count) + "- " + self.id + "[" + str(key) + "]:" + str(self.hashTable[key])
                 count += 1
+            if self.id == "AliveNess":
+                print alive, "alive out of ", int(settings.N) -1
         print "     "
 
     def remove(self, key):
@@ -68,7 +74,8 @@ class HashTable:
         if len(self.hashTable) > 0:
             for k, v in self.hashTable.iteritems():
                 # print "v", v
-                list_.append(k + ":" + str(v.heart_beat_counter + 1))
+                if self.isAlive(k):
+                    list_.append(k + ":" + str(v.heart_beat_counter))
 
 
             list_ = ','.join(list_)

@@ -74,6 +74,12 @@ def init(N_, hashedKeyModN_, mode_):
     global TlocalCheck
     global TClean
     TFails = 5
+    if int(N) < 10:
+        TFails = 3
+
     Tgossip = 3
+    if int(N) > 10:
+        Tgossip = 2
+
     TlocalCheck = 1.5
     TClean = TFails * 2

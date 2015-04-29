@@ -10,7 +10,7 @@ import math
 import VectorStamp
 import HeartBeat
 contaminated = False
-
+import Print
 # def init():
 #     global settings.wireObj_push_alive
 #     settings.wireObj_push_alive = wire.Wire(int(settings.N), settings.hashedKeyModN, settings.mode, "epidemic", settings.successor_list)
@@ -73,7 +73,7 @@ def receive_request_push_alive_only(handler=""):
 
         elif command == Command.DISTRIBUTE:
             response = Response.SUCCESS
-            value_to_send= "Alive!"
+            value_to_send = "Alive!"
             settings.wireObj_push_alive.send_reply(sender_addr, settings.hashedKeyModN, response, len(value_to_send), value_to_send, cur_thread, Command.DISTRIBUTE, sixteen_byte_header)
             if value != "":
                 remote_aliveness_table = value.split(',')
@@ -89,11 +89,13 @@ def receive_request_push_alive_only(handler=""):
                             # if time.time() - local_hb_obj.time >= settings.TClean:  # if not exist, add it
                             #     HB = HeartBeat.HeartBeat(100000, time.time())
                             #     settings.aliveNessTable.put(str(remote_node_id), HB)
-                            if time.time() - local_hb_obj.time <= settings.TFails:
-                                if int(remote_hear_beat_counter) > local_hb_obj.heart_beat_counter:
+                            t = time.time() - local_hb_obj.time
+                            if t <= settings.TFails or t >= settings.TClean:
+                                if int(remote_hear_beat_counter) > int(local_hb_obj.heart_beat_counter):
                                     # second condition to prevent oscillation
                                     # if time.time() - local_hb_obj.time < settings.TClean:
-                                    # print "BONUS .. DISTRIBUTE", remote_node_id
+                                    # Print.print_("BONUS .. DISTRIBUTE " + str(remote_node_id) + " from " + str(key) + " " + remote_hear_beat_counter + " > " + str(local_hb_obj.heart_beat_counter),
+                                    #              Print.HEARTBEAT, settings.hashedKeyModN, threading.currentThread())
                                     local_hb_obj.heart_beat_counter = int(remote_hear_beat_counter)
                                     local_hb_obj.time = time.time()
                                     settings.aliveNessTable.put(str(remote_node_id), local_hb_obj)
@@ -298,8 +300,12 @@ def check_random_nodes():
         range_exclude_local = range_
         list_random_nodes = random.sample(range_exclude_local, size)
         for random_node in list_random_nodes:
-            settings.wireObj_push_alive.send_request(Command.HEARTBEAT, str(settings.hashedKeyModN), len(""), "", threading.currentThread(), random_node, retrials=0)
-            response_code, value_biggy = settings.wireObj_push_alive.receive_reply(threading.currentThread(), Command.HEARTBEAT)
+            try:
+                settings.wireObj_push_alive.send_request(Command.HEARTBEAT, str(settings.hashedKeyModN), len(""), "", threading.currentThread(), random_node, retrials=0)
+                response_code, value_biggy = settings.wireObj_push_alive.receive_reply(threading.currentThread(), Command.HEARTBEAT)
+            except:
+                print "BADDDDDDDDDDDDDDDDD NODEEEEEEEEEEEEEEEEEEEEE", str(random_node)
+                # raise
 
             if response_code == Response.SUCCESS:
                 local_hb_obj = settings.aliveNessTable.get(str(random_node))
@@ -334,11 +340,13 @@ def distribute():
             random_node = other_node()
             value = settings.aliveNessTable.get_list_of_alive_keys()
             # value = ",".join(value)
-
-            settings.wireObj_push_alive.send_request(Command.DISTRIBUTE, str(settings.hashedKeyModN), len(value), value,
-                                 threading.currentThread(), random_node, .5, 0)
-            response_code, value_biggy = settings.wireObj_push_alive.receive_reply(threading.currentThread(), Command.DISTRIBUTE)
-
+            try:
+                settings.wireObj_push_alive.send_request(Command.DISTRIBUTE, str(settings.hashedKeyModN), len(value), value,
+                                     threading.currentThread(), random_node, .5, 0)
+                response_code, value_biggy = settings.wireObj_push_alive.receive_reply(threading.currentThread(), Command.DISTRIBUTE)
+            except:
+                print "BADDDDDDDDDDDDDDDDD NODEEEEEEEEEEEEEEEEEEEEE", str(random_node)
+                # raise
             counter += 1
 
         sum_counter += counter
